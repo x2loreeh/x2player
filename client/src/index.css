@@ -1,0 +1,194 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(210 25% 7.8431%);
+  --card: hsl(180 6.6667% 97.0588%);
+  --card-foreground: hsl(210 25% 7.8431%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(210 25% 7.8431%);
+  --primary: hsl(134.6 100% 42.7%);
+  --primary-foreground: hsl(222.2 84% 4.9%);
+  --secondary: hsl(210 25% 7.8431%);
+  --secondary-foreground: hsl(0 0% 100%);
+  --muted: hsl(240 1.9608% 90%);
+  --muted-foreground: hsl(210 25% 7.8431%);
+  --accent: hsl(211.5789 51.3514% 92.7451%);
+  --accent-foreground: hsl(203.8863 88.2845% 53.1373%);
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(201.4286 30.4348% 90.9804%);
+  --input: hsl(200 23.0769% 97.4510%);
+  --ring: hsl(134.6 100% 42.7%);
+  --radius: 1.3rem;
+  
+  /* Black and white theme colors */
+  --dark-bg: hsl(0 0% 0%);
+  --dark-surface: hsl(0 0% 12%);
+  --dark-elevated: hsl(0 0% 18%);
+  --dark-text-primary: hsl(0 0% 100%);
+  --dark-text-secondary: hsl(0 0% 60%);
+  --dark-border: hsl(0 0% 25%);
+  --spotify-green: hsl(0 0% 100%);
+  
+  --font-sans: 'Inter', sans-serif;
+}
+
+.dark {
+  --background: hsl(0 0% 0%);
+  --foreground: hsl(0 0% 100%);
+  --card: hsl(0 0% 12%);
+  --card-foreground: hsl(0 0% 100%);
+  --popover: hsl(0 0% 0%);
+  --popover-foreground: hsl(0 0% 100%);
+  --primary: hsl(0 0% 100%);
+  --primary-foreground: hsl(0 0% 0%);
+  --secondary: hsl(0 0% 18%);
+  --secondary-foreground: hsl(0 0% 100%);
+  --muted: hsl(0 0% 18%);
+  --muted-foreground: hsl(0 0% 60%);
+  --accent: hsl(0 0% 18%);
+  --accent-foreground: hsl(0 0% 100%);
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(0 0% 25%);
+  --input: hsl(0 0% 18%);
+  --ring: hsl(0 0% 100%);
+}
+
+/* Liquid glass utility classes */
+@layer components {
+  .liquid-glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+  
+  .liquid-glass-strong {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--dark-bg);
+    color: var(--dark-text-primary);
+  }
+  
+  html {
+    color-scheme: dark;
+  }
+}
+
+@layer utilities {
+  .bg-dark-bg {
+    background-color: var(--dark-bg);
+  }
+  
+  .bg-dark-surface {
+    background-color: var(--dark-surface);
+  }
+  
+  .bg-dark-elevated {
+    background-color: var(--dark-elevated);
+  }
+  
+  .text-dark-text-primary {
+    color: var(--dark-text-primary);
+  }
+  
+  .text-dark-text-secondary {
+    color: var(--dark-text-secondary);
+  }
+  
+  .border-dark-border {
+    border-color: var(--dark-border);
+  }
+  
+  .bg-spotify-green {
+    background-color: var(--spotify-green);
+  }
+  
+  .text-spotify-green {
+    color: var(--spotify-green);
+  }
+  
+  .placeholder-dark-text-secondary::placeholder {
+    color: var(--dark-text-secondary);
+  }
+  
+  .animate-marquee-bidirectional {
+    animation: marquee-bidirectional 15s linear infinite;
+    padding-right: 1rem;
+  }
+  
+  @keyframes marquee-bidirectional {
+    0%, 10% {
+      transform: translateX(0%);
+    }
+    50% {
+      transform: translateX(calc(-100% + 140px));
+    }
+    90%, 100% {
+      transform: translateX(0%);
+    }
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 10s linear infinite;
+  }
+
+  @keyframes spin-slow {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--dark-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--dark-border);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--dark-text-secondary);
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Album card hover effects */
+.album-card:hover {
+  transform: scale(1.02);
+}
