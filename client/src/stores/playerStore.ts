@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Track } from '@shared/schema';
+import type { Track, Playlist } from '@shared/schema';
 
 interface PlayerState {
   currentTrack: Track | null;
@@ -11,6 +11,8 @@ interface PlayerState {
   volume: number;
   isShuffled: boolean;
   repeatMode: 'none' | 'track' | 'queue';
+  playlists: Playlist[];
+  selectedPlaylist: Playlist | null;
   
   // Actions
   playTrack: (track: Track) => void;
@@ -22,6 +24,8 @@ interface PlayerState {
   setVolume: (volume: number) => void;
   toggleShuffle: () => void;
   setRepeatMode: (mode: 'none' | 'track' | 'queue') => void;
+  setPlaylists: (playlists: Playlist[]) => void;
+  setSelectedPlaylist: (playlist: Playlist | null) => void;
   updateProgress: (progress: number, duration: number) => void;
 }
 
@@ -35,6 +39,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   volume: 1,
   isShuffled: false,
   repeatMode: 'none',
+  playlists: [],
+  selectedPlaylist: null,
   
   playTrack: (track) => {
     set({
@@ -110,5 +116,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   
   updateProgress: (progress, duration) => {
     set({ progress, duration });
+  },
+
+  setPlaylists: (playlists) => {
+    set({ playlists });
+  },
+
+  setSelectedPlaylist: (playlist) => {
+    set({ selectedPlaylist: playlist });
   },
 }));
