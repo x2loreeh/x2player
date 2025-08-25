@@ -3,8 +3,8 @@ import { md5 } from 'js-md5';
 import type { NavidromeCredentials, SubsonicResponse, Album, Track, Playlist } from '@shared/schema';
 
 class NavidromeService {
-  private api: AxiosInstance;
-  private credentials: NavidromeCredentials | null = null;
+  api: AxiosInstance;
+  credentials: NavidromeCredentials | null = null;
 
   constructor() {
     this.api = axios.create();
