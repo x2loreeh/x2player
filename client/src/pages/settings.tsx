@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { User, ChevronRight, FolderSync, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,24 @@ export default function Settings() {
   const { volume, setVolume } = usePlayerStore();
   const { toast } = useToast();
   
-  const [crossfade, setCrossfade] = useState(false);
-  const [normalizeVolume, setNormalizeVolume] = useState(true);
+  const [crossfade, setCrossfade] = useState<boolean>(() => {
+    const savedCrossfade = localStorage.getItem('settings_crossfade');
+    return savedCrossfade === 'true';
+  });
+  const [normalizeVolume, setNormalizeVolume] = useState<boolean>(() => {
+    const savedNormalizeVolume = localStorage.getItem('settings_normalizeVolume');
+    return savedNormalizeVolume !== 'false'; // Default to true if not set
+  });
+
+  useEffect(() => {
+    localStorage.setItem('settings_crossfade', String(crossfade));
+  }, [crossfade]);
+
+  useEffect(() => {
+    localStorage.setItem('settings_normalizeVolume', String(normalizeVolume));
+  }, [normalizeVolume]);
+
+
 
   const handleLogout = () => {
     logout();
