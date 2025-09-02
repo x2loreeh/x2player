@@ -7,6 +7,14 @@ import { navidromeService } from "@/services/navidrome";
 import { MockNavidromeService } from "@/services/mockData";
 import { Button } from "@/components/ui/button";
 import type { Album, Track } from "@shared/schema";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export default function AlbumPage() {
   const [, params] = useRoute("/album/:id");
@@ -77,11 +85,6 @@ export default function AlbumPage() {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   if (isLoading) {
@@ -198,11 +201,27 @@ export default function AlbumPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-white truncate">{track.title}</p>
                   <p className="text-dark-text-secondary text-sm">
-                    {formatDate("Aug 14")} {/* You can update this with actual date */}
+                    {track.artist}
                   </p>
                 </div>
                 <div className="ml-4">
-                  <MoreHorizontal className="h-5 w-5 text-dark-text-secondary" />
+                  <Sheet>
+                    <SheetTrigger onClick={(e) => e.stopPropagation()}>
+                      <MoreHorizontal className="h-5 w-5 text-dark-text-secondary" />
+                    </SheetTrigger>
+                    <SheetContent side="bottom" className="bg-dark-surface text-dark-text-primary rounded-t-2xl border-none">
+                      <SheetHeader className="text-left">
+                        <SheetTitle className="text-xl">{track.title}</SheetTitle>
+                        <SheetDescription className="text-base">
+                          {track.artist}
+                        </SheetDescription>
+                      </SheetHeader>
+                      <div className="py-4 grid gap-2">
+                        <Button variant="ghost" className="w-full justify-start text-lg p-4">Save Song</Button>
+                        <Button variant="ghost" className="w-full justify-start text-lg p-4">Add to Playlist</Button>
+                      </div>
+                    </SheetContent>
+                  </Sheet>
                 </div>
               </div>
             ))}
