@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRoute, useLocation } from "wouter";
-import { ArrowLeft, Play, MoreHorizontal, Shuffle } from "lucide-react";
+import { ArrowLeft, Play, MoreHorizontal, Shuffle, Heart, ListPlus } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { usePlayerStore } from "@/stores/playerStore";
 import { navidromeService } from "@/services/navidrome";
@@ -210,15 +210,23 @@ export default function AlbumPage() {
                       <MoreHorizontal className="h-5 w-5 text-dark-text-secondary" />
                     </SheetTrigger>
                     <SheetContent side="bottom" className="bg-dark-surface text-dark-text-primary rounded-t-2xl border-none">
-                      <SheetHeader className="text-left">
-                        <SheetTitle className="text-xl">{track.title}</SheetTitle>
-                        <SheetDescription className="text-base">
-                          {track.artist}
-                        </SheetDescription>
-                      </SheetHeader>
-                      <div className="py-4 grid gap-2">
-                        <Button variant="ghost" className="w-full justify-start text-lg p-4">Save Song</Button>
-                        <Button variant="ghost" className="w-full justify-start text-lg p-4">Add to Playlist</Button>
+                      <div className="max-w-sm mx-auto px-4">
+                        <SheetHeader className="text-left">
+                          <SheetTitle className="text-xl text-white">{track.title}</SheetTitle>
+                          <SheetDescription className="text-base text-white">
+                            {track.artist}
+                          </SheetDescription>
+                        </SheetHeader>
+                        <div className="py-4 grid gap-2">
+                          <Button variant="ghost" className="w-full justify-start text-lg p-4 text-white hover:bg-dark-elevated hover:text-white">
+                            <Heart className="mr-4 h-5 w-5" />
+                            Save Song
+                          </Button>
+                          <Button variant="ghost" className="w-full justify-start text-lg p-4 text-white hover:bg-dark-elevated hover:text-white">
+                            <ListPlus className="mr-4 h-5 w-5" />
+                            Add to Playlist
+                          </Button>
+                        </div>
                       </div>
                     </SheetContent>
                   </Sheet>
