@@ -209,8 +209,8 @@ export default function AlbumPage() {
                     <SheetTrigger onClick={(e) => e.stopPropagation()}>
                       <MoreHorizontal className="h-5 w-5 text-dark-text-secondary" />
                     </SheetTrigger>
-                    <SheetContent side="bottom" className="bg-dark-surface text-dark-text-primary rounded-t-2xl border-none">
-                      <div className="max-w-sm mx-auto px-4">
+                    <SheetContent side="bottom" className="bg-transparent border-none p-0">
+                      <div className="mx-auto max-w-sm bg-dark-surface text-dark-text-primary rounded-t-2xl p-6">
                         <SheetHeader className="text-left">
                           <SheetTitle className="text-xl text-white">{track.title}</SheetTitle>
                           <SheetDescription className="text-base text-white">
