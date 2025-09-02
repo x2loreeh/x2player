@@ -47,7 +47,7 @@ export function FullPlayer({ isOpen, onClose }: FullPlayerProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-dark-bg z-[100] flex flex-col relative overflow-hidden">
+    <div className="fixed inset-0 bg-dark-bg z-[100] flex flex-col overflow-hidden">
       {/* Background with blurred cover */}
       {currentTrack?.coverArt && (
         <div className="absolute inset-0">
