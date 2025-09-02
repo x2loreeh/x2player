@@ -200,28 +200,21 @@ class NavidromeService {
     }
   }
 
-  async createPlaylist(name: string, imageFile?: File, songIds?: string[]): Promise<Playlist> {
+  async getPlaylist(playlistId: string): Promise<Playlist> {
     try {
-      const formData = new FormData();
-      formData.append('name', name);
-      if (songIds) {
-        songIds.forEach(id => formData.append('songId', id));
-      }
-      if (imageFile) {
-        formData.append('image', imageFile);
-      }
-
-      const response = await this.api.post('/createPlaylist', formData, {
-        params: this.generateAuthParams(),
-        headers: {
-          'Content-Type': 'multipart/form-data',
+      const response = await this.api.get('/getPlaylist', {
+        params: {
+          ...this.generateAuthParams(),
+          id: playlistId,
         },
       });
 
       const data: SubsonicResponse<{ playlist: any }> = response.data;
 
       if (data['subsonic-response'].status === 'failed') {
-        throw new Error(data['subsonic-response'].error?.message || 'Failed to create playlist');
+        throw new Error(
+          data['subsonic-response'].error?.message || 'Failed to fetch playlist',
+        );
       }
 
       const playlist = data['subsonic-response'].playlist;
@@ -237,9 +230,86 @@ class NavidromeService {
         changed: new Date(playlist.changed || Date.now()),
       };
     } catch (error) {
-      console.error('Failed to create playlist:', error);
+      console.error(`Failed to fetch playlist ${playlistId}:`, error);
       throw error;
     }
+  }
+
+  async addTrackToPlaylist(
+    playlistId: string,
+    trackId: string,
+  ): Promise<boolean> {
+    try {
+      const response = await this.api.post(
+        '/updatePlaylist',
+        null,
+        {
+          params: {
+            ...this.generateAuthParams(),
+            playlistId,
+            songIdToAdd: trackId,
+          },
+        },
+      );
+
+      const data: SubsonicResponse = response.data;
+
+      if (data['subsonic-response'].status === 'failed') {
+        throw new Error(
+          data['subsonic-response'].error?.message ||
+            'Failed to add track to playlist',
+        );
+      }
+
+      return data['subsonic-response'].status === 'ok';
+    } catch (error) {
+      console.error('Failed to add track to playlist:', error);
+      throw error;
+    }
+  }
+
+  async createPlaylist(
+    name: string,
+    comment?: string,
+    isPublic?: boolean,
+    imageFile?: File,
+  ): Promise<Playlist> {
+    const formData = new FormData();
+    formData.append('name', name);
+    if (comment) formData.append('comment', comment);
+    if (isPublic !== undefined)
+      formData.append('public', isPublic.toString());
+    if (imageFile) formData.append('image', imageFile);
+
+    const response = await this.api.post(
+      '/createPlaylist',
+      formData,
+      {
+        params: this.generateAuthParams(),
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      },
+    );
+
+    const data: SubsonicResponse<{ playlist: any }> = response.data;
+
+    if (data['subsonic-response'].status === 'failed') {
+      throw new Error(data['subsonic-response'].error?.message || 'Failed to create playlist');
+    }
+
+    const playlist = data['subsonic-response'].playlist;
+    return {
+      id: playlist.id,
+      name: playlist.name,
+      comment: playlist.comment,
+      owner: playlist.owner,
+      public: playlist.public || false,
+      songCount: playlist.songCount || 0,
+      duration: playlist.duration || 0,
+      created: new Date(playlist.created || Date.now()),
+      changed: new Date(playlist.changed || Date.now()),
+    };
   }
 
   async deletePlaylist(playlistId: string): Promise<boolean> {
@@ -264,13 +334,22 @@ class NavidromeService {
     }
   }
 
-  async updatePlaylist(playlistId: string, name?: string, comment?: string, public?: boolean, imageFile?: File, songIdsToAdd?: string[], songIndexesToRemove?: number[]): Promise<Playlist> {
+  async updatePlaylist(
+    playlistId: string,
+    name?: string,
+    comment?: string,
+    isPublic?: boolean,
+    imageFile?: File,
+    songIdsToAdd?: string[],
+    songIndexesToRemove?: number[],
+  ): Promise<Playlist> {
     try {
       const formData = new FormData();
       formData.append('playlistId', playlistId);
       if (name) formData.append('name', name);
       if (comment) formData.append('comment', comment);
-      if (public !== undefined) formData.append('public', public.toString());
+      if (isPublic !== undefined)
+        formData.append('public', isPublic.toString());
       if (songIdsToAdd) {
         songIdsToAdd.forEach(id => formData.append('songIdToAdd', id));
       }

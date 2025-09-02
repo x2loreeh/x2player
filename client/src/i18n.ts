@@ -1,6 +1,8 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
+import enTranslation from "./locales/en/translation.json";
+import itTranslation from "./locales/it/translation.json";
 
 i18n
   .use(LanguageDetector)
@@ -8,22 +10,15 @@ i18n
   .init({
     resources: {
       en: {
-        translation: require('./locales/en/translation.json'),
+        translation: enTranslation,
       },
       it: {
-        translation: require('./locales/it/translation.json'),
+        translation: itTranslation,
       },
     },
-    fallbackLng: 'en',
-    debug: false, // Set to true for debugging
-
-    detection: {
-      order: ['localStorage', 'navigator'],
-      caches: ['localStorage'],
-    },
-
+    fallbackLng: "en",
     interpolation: {
-      escapeValue: false, // react already safes from xss
+      escapeValue: false,
     },
   });
 

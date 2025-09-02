@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNavidrome } from "@/services/navidrome";
+import { navidromeService } from "@/services/navidrome";
 import { usePlayerStore } from "@/stores/playerStore";
 import { useState } from "react";
 
@@ -44,7 +44,6 @@ export function AlbumCard({
   };
 
   const { toast } = useToast();
-  const navidrome = useNavidrome();
   const playlists = usePlayerStore((state) => state.playlists);
   const [isAddingToPlaylist, setIsAddingToPlaylist] = useState(false);
 
@@ -95,7 +94,7 @@ export function AlbumCard({
                       key={playlist.id}
                       onClick={async () => {
                         try {
-                          await navidrome.addTrackToPlaylist(playlist.id, song.id);
+                          await navidromeService.addTrackToPlaylist(playlist.id, song.id);
                           toast({
                             title: "Success",
                             description: `${song.title} added to ${playlist.name}`,

@@ -18,13 +18,15 @@ import {
   DropdownMenuTrigger,
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Playlists() {
   const { credentials } = useAuthStore();
   const { playQueue } = usePlayerStore();
 
   const queryClient = useQueryClient();
+
+  const { toast } = useToast();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -50,17 +52,12 @@ export default function Playlists() {
   });
 
   const handlePlaylistClick = (playlist: Playlist) => {
-    try {
-      // If the clicked playlist is already selected, deselect it
-      if (selectedPlaylist?.id === playlist.id) {
-        setSelectedPlaylist(null);
-        // setCurrentPlaylistTracks([]); // setCurrentPlaylistTracks is updated by the playlistTracks query data
-        return;
-      }
-      setSelectedPlaylist(playlist); // Set the selected playlist
-      const tracks = await navidromeService.getPlaylistTracks(playlist.id);
-      console.error("Failed to play playlist:", error);
+    // If the clicked playlist is already selected, deselect it
+    if (selectedPlaylist?.id === playlist.id) {
+      setSelectedPlaylist(null);
+      return;
     }
+    setSelectedPlaylist(playlist); // Set the selected playlist
   };
 
   useEffect(() => {
@@ -213,7 +210,6 @@ export default function Playlists() {
                           </div>
                         )}
 
-                        </div>
                         <div className="flex-1">
                           <p className="font-semibold text-dark-text-primary">
                             {playlist.name}
@@ -266,7 +262,6 @@ export default function Playlists() {
                             <Headphones className="text-white text-lg" />
                           </div>
                         )}
-                        </div>
                         <div className="flex-1">
                           <p className="font-semibold text-dark-text-primary">
                             {playlist.name}
@@ -375,4 +370,3 @@ export default function Playlists() {
     </div>
   );
 }
-

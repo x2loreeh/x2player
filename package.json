@@ -11,6 +11,7 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
     "@neondatabase/serverless": "^0.10.4",
@@ -55,6 +56,7 @@
     "express-session": "^1.18.1",
     "framer-motion": "^11.13.1",
     "i18next": "^25.4.2",
+    "i18next-browser-languagedetector": "^8.2.0",
     "input-otp": "^1.4.2",
     "js-md5": "^0.8.3",
     "lucide-react": "^0.453.0",
