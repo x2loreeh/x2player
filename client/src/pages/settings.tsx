@@ -8,13 +8,16 @@ import { usePlayerStore } from "@/stores/playerStore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 export default function Settings() {
   const [, setLocation] = useLocation();
   const { credentials, logout } = useAuthStore();
   const { volume, setVolume } = usePlayerStore();
   const { toast } = useToast();
-  
+  const { t, i18n } = useTranslation();
+
   const [crossfade, setCrossfade] = useState<boolean>(() => {
     const savedCrossfade = localStorage.getItem('settings_crossfade');
     return savedCrossfade === 'true';
@@ -32,7 +35,11 @@ export default function Settings() {
     localStorage.setItem('settings_normalizeVolume', String(normalizeVolume));
   }, [normalizeVolume]);
 
-
+  const handleLanguageChange = (lang: string) => {
+    if (lang) {
+      i18n.changeLanguage(lang);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -55,7 +62,7 @@ export default function Settings() {
       <div className="max-w-sm mx-auto">
         {/* Header */}
         <div className="px-4 py-6">
-          <h1 className="text-2xl font-bold">Settings</h1>
+          <h1 className="text-2xl font-bold">{t('settings.title')}</h1>
         </div>
 
         {/* Profile Section */}
@@ -82,13 +89,13 @@ export default function Settings() {
         <div className="px-4 space-y-8">
           {/* Playback Settings */}
           <div>
-            <h2 className="text-lg font-semibold mb-4 text-dark-text-primary">Playback</h2>
+            <h2 className="text-lg font-semibold mb-4 text-dark-text-primary">{t('settings.playback')}</h2>
             <Card className="bg-dark-surface border-dark-border">
               <CardContent className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-dark-text-primary">Crossfade</p>
-                    <p className="text-sm text-dark-text-secondary">Smooth transitions between songs</p>
+                    <p className="font-medium text-dark-text-primary">{t('settings.crossfade')}</p>
+                    <p className="text-sm text-dark-text-secondary">{t('settings.crossfadeDescription')}</p>
                   </div>
                   <Switch
                     checked={crossfade}
@@ -100,8 +107,8 @@ export default function Settings() {
                 
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-dark-text-primary">Normalize volume</p>
-                    <p className="text-sm text-dark-text-secondary">Keep consistent volume levels</p>
+                    <p className="font-medium text-dark-text-primary">{t('settings.normalizeVolume')}</p>
+                    <p className="text-sm text-dark-text-secondary">{t('settings.normalizeVolumeDescription')}</p>
                   </div>
                   <Switch
                     checked={normalizeVolume}
@@ -113,7 +120,7 @@ export default function Settings() {
                 
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <p className="font-medium text-dark-text-primary">Volume</p>
+                    <p className="font-medium text-dark-text-primary">{t('settings.volume')}</p>
                     <span className="text-sm text-dark-text-secondary">
                       {Math.round(volume * 100)}%
                     </span>
@@ -134,13 +141,13 @@ export default function Settings() {
 
           {/* Audio Quality */}
           <div>
-            <h2 className="text-lg font-semibold mb-4 text-dark-text-primary">Audio Quality</h2>
+            <h2 className="text-lg font-semibold mb-4 text-dark-text-primary">{t('settings.audioQuality')}</h2>
             <Card className="bg-dark-surface border-dark-border">
               <CardContent className="p-4 space-y-4">
                 <div className="flex items-center justify-between cursor-pointer hover:bg-dark-elevated -m-2 p-2 rounded-lg transition-colors">
                   <div>
-                    <p className="font-medium text-dark-text-primary">Streaming quality</p>
-                    <p className="text-sm text-dark-text-secondary">High (320 kbps)</p>
+                    <p className="font-medium text-dark-text-primary">{t('settings.streamingQuality')}</p>
+                    <p className="text-sm text-dark-text-secondary">{t('settings.streamingQualityDescription')}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-dark-text-secondary" />
                 </div>
@@ -149,8 +156,8 @@ export default function Settings() {
                 
                 <div className="flex items-center justify-between cursor-pointer hover:bg-dark-elevated -m-2 p-2 rounded-lg transition-colors">
                   <div>
-                    <p className="font-medium text-dark-text-primary">Download quality</p>
-                    <p className="text-sm text-dark-text-secondary">Very High (FLAC)</p>
+                    <p className="font-medium text-dark-text-primary">{t('settings.downloadQuality')}</p>
+                    <p className="text-sm text-dark-text-secondary">{t('settings.downloadQualityDescription')}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-dark-text-secondary" />
                 </div>
@@ -158,9 +165,37 @@ export default function Settings() {
             </Card>
           </div>
 
+          {/* Language Settings */}
+          <div>
+            <h2 className="text-lg font-semibold mb-4 text-dark-text-primary">{t('settings.language')}</h2>
+            <Card className="bg-dark-surface border-dark-border">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-dark-text-primary">{t('settings.language')}</p>
+                    <p className="text-sm text-dark-text-secondary">{t('settings.languageDescription')}</p>
+                  </div>
+                  <ToggleGroup
+                    type="single"
+                    defaultValue={i18n.language}
+                    onValueChange={handleLanguageChange}
+                    className="bg-dark-elevated rounded-full"
+                  >
+                    <ToggleGroupItem value="en" className="px-4 rounded-full data-[state=on]:bg-white data-[state=on]:text-black">
+                      EN
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="it" className="px-4 rounded-full data-[state=on]:bg-white data-[state=on]:text-black">
+                      IT
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Server Settings */}
           <div>
-            <h2 className="text-lg font-semibold mb-4 text-dark-text-primary">Server</h2>
+            <h2 className="text-lg font-semibold mb-4 text-dark-text-primary">{t('settings.server')}</h2>
             <Card className="bg-dark-surface border-dark-border">
               <CardContent className="p-4 space-y-4">
                 <div
@@ -168,8 +203,8 @@ export default function Settings() {
                   onClick={() => setLocation("/login")}
                 >
                   <div>
-                    <p className="font-medium text-dark-text-primary">Change server</p>
-                    <p className="text-sm text-dark-text-secondary">Connect to a different server</p>
+                    <p className="font-medium text-dark-text-primary">{t('settings.changeServer')}</p>
+                    <p className="text-sm text-dark-text-secondary">{t('settings.changeServerDescription')}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-dark-text-secondary" />
                 </div>
@@ -181,8 +216,8 @@ export default function Settings() {
                   onClick={handleSync}
                 >
                   <div>
-                    <p className="font-medium text-dark-text-primary">FolderSync library</p>
-                    <p className="text-sm text-dark-text-secondary">Update your music collection</p>
+                    <p className="font-medium text-dark-text-primary">{t('settings.syncLibrary')}</p>
+                    <p className="text-sm text-dark-text-secondary">{t('settings.syncLibraryDescription')}</p>
                   </div>
                   <FolderSync className="h-4 w-4 text-dark-text-secondary" />
                 </div>
@@ -198,7 +233,7 @@ export default function Settings() {
               className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold"
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
+              {t('settings.signOut')}
             </Button>
           </div>
         </div>

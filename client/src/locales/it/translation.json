@@ -1,3 +1,24 @@
 {
-  "settings.title": "Impostazioni"
+  "settings": {
+    "title": "Impostazioni",
+    "playback": "Riproduzione",
+    "crossfade": "Crossfade",
+    "crossfadeDescription": "Consente di effettuare il crossfade tra i brani.",
+    "normalizeVolume": "Normalizza volume",
+    "normalizeVolumeDescription": "Imposta lo stesso livello di volume per tutte le tracce.",
+    "volume": "Volume",
+    "audioQuality": "Qualità Audio",
+    "streamingQuality": "Qualità streaming",
+    "streamingQualityDescription": "Automatico",
+    "downloadQuality": "Qualità download",
+    "downloadQualityDescription": "Standard",
+    "language": "Lingua",
+    "languageDescription": "Cambia la lingua dell'applicazione.",
+    "server": "Server",
+    "changeServer": "Cambia server",
+    "changeServerDescription": "Cambia il server Navidrome a cui sei connesso.",
+    "syncLibrary": "Sincronizza libreria",
+    "syncLibraryDescription": "Sincronizza la tua libreria musicale.",
+    "signOut": "Esci"
+  }
 }
