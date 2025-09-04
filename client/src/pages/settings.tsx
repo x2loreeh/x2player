@@ -10,13 +10,26 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Settings() {
   const [, setLocation] = useLocation();
   const { credentials, logout } = useAuthStore();
   const { volume, setVolume } = usePlayerStore();
-  const { theme, setTheme } = useSettingsStore();
+  const {
+    theme,
+    setTheme,
+    streamingQuality,
+    setStreamingQuality,
+    downloadQuality,
+    setDownloadQuality,
+  } = useSettingsStore();
   const { toast } = useToast();
   const { t, i18n } = useTranslation();
 
@@ -152,22 +165,42 @@ export default function Settings() {
             <h2 className="text-lg font-semibold mb-4 text-dark-text-primary">{t('settings.audioQuality')}</h2>
             <Card className="bg-dark-surface border-dark-border">
               <CardContent className="p-4 space-y-4">
-                <div className="flex items-center justify-between cursor-pointer hover:bg-dark-elevated -m-2 p-2 rounded-lg transition-colors">
+                <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-dark-text-primary">{t('settings.streamingQuality')}</p>
                     <p className="text-sm text-dark-text-secondary">{t('settings.streamingQualityDescription')}</p>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-dark-text-secondary" />
+                  <Select value={streamingQuality} onValueChange={setStreamingQuality}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select quality" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="lossless">Lossless</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <Separator className="bg-dark-border" />
                 
-                <div className="flex items-center justify-between cursor-pointer hover:bg-dark-elevated -m-2 p-2 rounded-lg transition-colors">
+                <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium text-dark-text-primary">{t('settings.downloadQuality')}</p>
                     <p className="text-sm text-dark-text-secondary">{t('settings.downloadQualityDescription')}</p>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-dark-text-secondary" />
+                  <Select value={downloadQuality} onValueChange={setDownloadQuality}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select quality" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Low</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="lossless">Lossless</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -183,19 +216,15 @@ export default function Settings() {
                     <p className="font-medium text-dark-text-primary">{t('settings.language')}</p>
                     <p className="text-sm text-dark-text-secondary">{t('settings.languageDescription')}</p>
                   </div>
-                  <ToggleGroup
-                    type="single"
-                    defaultValue={i18n.language}
-                    onValueChange={handleLanguageChange}
-                    className="bg-dark-elevated rounded-full"
-                  >
-                    <ToggleGroupItem value="en" className="px-4 rounded-full data-[state=on]:bg-white data-[state=on]:text-black">
-                      EN
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="it" className="px-4 rounded-full data-[state=on]:bg-white data-[state=on]:text-black">
-                      IT
-                    </ToggleGroupItem>
-                  </ToggleGroup>
+                  <Select value={i18n.language} onValueChange={handleLanguageChange}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="en">English</SelectItem>
+                      <SelectItem value="it">Italiano</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -211,22 +240,16 @@ export default function Settings() {
                     <p className="font-medium text-dark-text-primary">{t('settings.theme')}</p>
                     <p className="text-sm text-dark-text-secondary">{t('settings.themeDescription')}</p>
                   </div>
-                  <ToggleGroup
-                    type="single"
-                    defaultValue={theme}
-                    onValueChange={handleThemeChange}
-                    className="bg-dark-elevated rounded-full"
-                  >
-                    <ToggleGroupItem value="light" className="px-4 rounded-full data-[state=on]:bg-white data-[state=on]:text-black">
-                      Light
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="dark" className="px-4 rounded-full data-[state=on]:bg-white data-[state=on]:text-black">
-                      Dark
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="system" className="px-4 rounded-full data-[state=on]:bg-white data-[state=on]:text-black">
-                      System
-                    </ToggleGroupItem>
-                  </ToggleGroup>
+                  <Select value={theme} onValueChange={handleThemeChange}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select theme" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="light">Light</SelectItem>
+                      <SelectItem value="dark">Dark</SelectItem>
+                      <SelectItem value="system">System</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
