@@ -1,6 +1,13 @@
-import axios, { AxiosInstance } from 'axios';
-import { md5 } from 'js-md5';
-import type { NavidromeCredentials, SubsonicResponse, Album, Track, Playlist } from '@shared/schema';
+import axios, { AxiosInstance } from "axios";
+import { md5 } from "js-md5";
+import type {
+  NavidromeCredentials,
+  SubsonicResponse,
+  Album,
+  Track,
+  Playlist,
+  Artist,
+} from "../../../shared/schema";
 
 class NavidromeService {
   api: AxiosInstance;
@@ -67,24 +74,78 @@ class NavidromeService {
         throw new Error(data['subsonic-response'].error?.message || 'Failed to fetch albums');
       }
 
-      return data['subsonic-response'].albumList2?.album?.map(album => ({
-        id: album.id,
-        name: album.name,
-        artist: album.artist,
-        coverArt: album.coverArt ? `${this.credentials?.serverUrl}/rest/getCoverArt?id=${album.coverArt}&${new URLSearchParams(this.generateAuthParams()).toString()}` : null,
-        year: album.year,
-        genre: album.genre,
-        trackCount: album.songCount || 0,
-        duration: album.duration || 0,
-        createdAt: new Date(album.created || Date.now()),
-      })) || [];
+      return (
+        data["subsonic-response"].albumList2?.album?.map((album: any) => ({
+          id: album.id,
+          name: album.name,
+          artist: album.artist,
+          coverArt: album.coverArt
+            ? `${
+                this.credentials?.serverUrl
+              }/rest/getCoverArt?id=${album.coverArt}&${new URLSearchParams(
+                this.generateAuthParams()
+              ).toString()}`
+            : null,
+          year: album.year,
+          genre: album.genre,
+          trackCount: album.songCount || 0,
+          duration: album.duration || 0,
+          createdAt: new Date(album.created || Date.now()),
+        })) || []
+      );
     } catch (error) {
-      console.error('Failed to fetch albums:', error);
+      console.error("Failed to fetch albums:", error);
       throw error;
     }
   }
 
-  async searchMusic(query: string): Promise<{ albums: Album[]; tracks: Track[]; artists: any[] }> {
+  async getArtists(
+    type: 'random' = 'random',
+    size = 10,
+    offset = 0
+  ): Promise<Artist[]> {
+    try {
+      const response = await this.api.get('/getArtists', {
+        params: {
+          ...this.generateAuthParams(),
+          type,
+          size,
+          offset,
+        },
+      });
+
+      const data: SubsonicResponse<{ artists: { artist: any[] } }> =
+        response.data;
+
+      if (data['subsonic-response'].status === 'failed') {
+        throw new Error(
+          data['subsonic-response'].error?.message || 'Failed to fetch artists'
+        );
+      }
+
+      return (
+        data['subsonic-response'].artists?.artist?.map((artist: any) => ({
+          id: artist.id,
+          name: artist.name,
+          coverArt: artist.coverArt
+            ? `${
+                this.credentials?.serverUrl
+              }/rest/getCoverArt?id=${artist.coverArt}&${new URLSearchParams(
+                this.generateAuthParams()
+              ).toString()}`
+            : null,
+          albumCount: artist.albumCount || 0,
+        })) || []
+      );
+    } catch (error) {
+      console.error('Failed to fetch artists:', error);
+      throw error;
+    }
+  }
+
+  async searchMusic(
+    query: string
+  ): Promise<{ albums: Album[]; tracks: Track[]; artists: any[] }> {
     try {
       const response = await this.api.get('/search3', {
         params: {

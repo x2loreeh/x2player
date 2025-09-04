@@ -8,7 +8,7 @@ import { navidromeService } from "@/services/navidrome";
 import { MockNavidromeService } from "@/services/mockData";
 import { AlbumCard } from "@/components/ui/album-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Album } from "@shared/schema";
+import type { Album, Artist } from "@shared/schema";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -40,22 +40,33 @@ export default function Home() {
     queryFn: () => activeService.getAlbums("random", 6),
   });
 
+  const { data: randomArtists, isLoading: isLoadingArtists } = useQuery({
+    queryKey: ["/api/artists", "random"],
+    queryFn: () => activeService.getArtists("random", 4),
+  });
+
   const handleAlbumClick = (album: Album) => {
     setLocation(`/album/${album.id}`);
+  };
+
+  const handleArtistClick = (artist: Artist) => {
+    // TODO: Implement artist page
+    console.log("Clicked artist:", artist);
   };
 
   return (
     <div className="min-h-screen bg-dark-bg text-dark-text-primary pb-32">
       <div className="max-w-sm mx-auto">
         {/* Header */}
-        <div className="px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">[x2player]</h1>
-          </div>
+        <div className="px-4 py-6">
+          <h1 className="text-3xl font-bold tracking-tight mb-4">
+            [x2player]
+          </h1>
         </div>
 
-        {/* Featured Albums Grid */}
+        {/* Recently Played */}
         <div className="px-4 mb-8">
+          <h2 className="text-2xl font-bold mb-4">Ascoltati di recente</h2>
           {isLoadingRecent ? (
             <div className="grid grid-cols-2 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -88,15 +99,11 @@ export default function Home() {
                         <Music className="h-12 w-12 text-white opacity-60" />
                       </div>
                     )}
-                    
-                    {/* Play button overlay */}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                       <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl">
                         <Play className="h-6 w-6 text-black ml-1" />
                       </div>
                     </div>
-                    
-                    {/* Album info overlay */}
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
                       <h3 className="font-bold text-white text-base truncate">
                         {album.name}
@@ -117,9 +124,10 @@ export default function Home() {
           )}
         </div>
 
-        {/* Bottom Grid Section */}
+        {/* Discovery Section */}
         <div className="px-4 mb-8">
-          {isLoadingNewest || isLoadingRandom ? (
+          <h2 className="text-2xl font-bold mb-4">Discovery</h2>
+          {isLoadingRandom ? (
             <div className="grid grid-cols-2 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="relative">
@@ -129,9 +137,9 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4">
-              {[...(newestAlbums?.slice(0, 2) || []), ...(randomAlbums?.slice(0, 2) || [])].map((album, index) => (
+              {randomAlbums?.map((album) => (
                 <div
-                  key={`${album.id}-${index}`}
+                  key={album.id}
                   className="relative cursor-pointer transition-all duration-300 hover:scale-[1.02] group"
                   onClick={() => handleAlbumClick(album)}
                 >
@@ -147,15 +155,11 @@ export default function Home() {
                         <Music className="h-12 w-12 text-black opacity-60" />
                       </div>
                     )}
-                    
-                    {/* Play button overlay */}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                       <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl">
                         <Play className="h-6 w-6 text-black ml-1" />
                       </div>
                     </div>
-                    
-                    {/* Album info overlay */}
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
                       <h3 className="font-bold text-white text-base truncate">
                         {album.name}
@@ -171,7 +175,46 @@ export default function Home() {
           )}
         </div>
 
-
+        {/* Artists Section */}
+        <div className="px-4 mb-8">
+          {isLoadingArtists ? (
+            <div className="grid grid-cols-2 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center">
+                  <Skeleton className="w-32 h-32 rounded-full bg-dark-border" />
+                  <Skeleton className="h-5 w-24 bg-dark-border rounded mt-2" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              {randomArtists?.map((artist) => (
+                <div
+                  key={artist.id}
+                  className="flex flex-col items-center cursor-pointer transition-all duration-300 hover:scale-105 group"
+                  onClick={() => handleArtistClick(artist)}
+                >
+                  <div className="relative w-32 h-32 rounded-full overflow-hidden">
+                    {artist.coverArt ? (
+                      <img
+                        src={artist.coverArt}
+                        alt={`${artist.name} cover`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-pink-500 to-yellow-500 flex items-center justify-center">
+                        <User className="h-16 w-16 text-white opacity-70" />
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="font-bold text-center mt-2 truncate w-32">
+                    {artist.name}
+                  </h3>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

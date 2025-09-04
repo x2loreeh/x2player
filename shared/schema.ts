@@ -82,6 +82,13 @@ export type Track = typeof tracks.$inferSelect;
 export type Playlist = typeof playlists.$inferSelect;
 export type PlayHistory = typeof playHistory.$inferSelect;
 
+export interface Artist {
+  id: string;
+  name: string;
+  coverArt: string | null;
+  albumCount: number;
+}
+
 // API Response types for Subsonic/Navidrome
 export interface SubsonicResponse<T = any> {
   'subsonic-response': {
