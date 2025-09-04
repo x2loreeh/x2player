@@ -177,7 +177,7 @@ export default function Settings() {
                   </div>
                   <ToggleGroup
                     type="single"
-                    defaultValue={i18n.language}
+                    defaultValue={i18n.language.split('-')[0]}
                     onValueChange={handleLanguageChange}
                     className="bg-dark-elevated rounded-full"
                   >
