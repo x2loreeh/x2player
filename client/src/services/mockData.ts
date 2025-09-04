@@ -28,6 +28,16 @@ export const mockAlbums: Album[] = [
   { id: '8', name: 'Golden Hour', artist: 'Sunset Boulevard', coverArt: mockCovers[7], year: 2024, genre: 'Indie', trackCount: 11, duration: 2650, createdAt: new Date('2024-07-30'), },
 ];
 
+export const mockArtists: Artist[] = [
+    { id: 'artist-1', name: 'YOUNG CARTI', coverArt: mockCovers[0], albumCount: 1 },
+    { id: 'artist-2', name: 'Playboi Carti', coverArt: mockCovers[1], albumCount: 2 },
+    { id: 'artist-3', name: 'xqvc', coverArt: mockCovers[2], albumCount: 1 },
+    { id: 'artist-4', name: 'Luna Eclipse', coverArt: mockCovers[4], albumCount: 1 },
+    { id: 'artist-5', name: 'Synthwave Productions', coverArt: mockCovers[5], albumCount: 1 },
+    { id: 'artist-6', name: 'Nature Sounds Collective', coverArt: mockCovers[6], albumCount: 1 },
+    { id: 'artist-7', name: 'Sunset Boulevard', coverArt: mockCovers[7], albumCount: 1 },
+];
+
 export const mockTracks: { [albumId: string]: Track[] } = {
   '1': [
     { id: '1-1', title: 'F1r3 Y0ur M4n4Ger', artist: 'YOUNG CARTI', album: 'WHOLE LOTTA MUSIC', albumId: '1', duration: 225, track: 1, year: 2024, genre: 'Hip Hop', coverArt: mockCovers[0], path: '#', },
@@ -104,12 +114,25 @@ export class MockNavidromeService {
     return this.generateMockArtists(size);
   }
 
-  async getArtist(id: string): Promise<Artist | undefined> {
-    return this.generateMockArtists(20).find((artist) => artist.id === id);
+  async getArtist(id: string): Promise<Artist> {
+    const artist = mockArtists.find((a) => a.id === id);
+    if (!artist) {
+      throw new Error("Artist not found");
+    }
+    return Promise.resolve(artist);
+  }
+
+  async getArtistAlbums(artistId: string): Promise<Album[]> {
+    const artist = mockArtists.find((a) => a.id === artistId);
+    if (!artist) {
+        return Promise.resolve([]);
+    }
+    const albums = mockAlbums.filter((album) => album.artist === artist.name);
+    return Promise.resolve(albums);
   }
 
   async getPlaylists(): Promise<Playlist[]> {
-    return this.generateMockPlaylists(5);
+    return Promise.resolve(mockPlaylists);
   }
 
   async getPlaylistTracks(playlistId: string): Promise<Track[]> {

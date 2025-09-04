@@ -17,6 +17,7 @@ import Search from "@/pages/search";
 import Playlists from "@/pages/playlists";
 import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
+import ArtistPage from "@/pages/artist";
 
 // Componente per la gestione delle route protette
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -67,6 +68,11 @@ function AppContent() {
               <Album />
             </ProtectedRoute>
           </Route>
+          <Route path="/artist/:id">
+            <ProtectedRoute>
+              <ArtistPage />
+            </ProtectedRoute>
+          </Route>
           <Route path="/search">
             <ProtectedRoute>
               <Search />
@@ -86,10 +92,8 @@ function AppContent() {
         </Switch>
       </main>
 
-      <>
-        <MiniPlayer />
-        <BottomNavigation />
-      </>
+      <MiniPlayer />
+      <BottomNavigation />
     </div>
   );
 }

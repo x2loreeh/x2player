@@ -79,13 +79,7 @@ class NavidromeService {
           id: album.id,
           name: album.name,
           artist: album.artist,
-          coverArt: album.coverArt
-            ? `${
-                this.credentials?.serverUrl
-              }/rest/getCoverArt?id=${album.coverArt}&${new URLSearchParams(
-                this.generateAuthParams()
-              ).toString()}`
-            : null,
+          coverArt: this.getCoverArtUrl(album.coverArt),
           year: album.year,
           genre: album.genre,
           trackCount: album.songCount || 0,
@@ -127,13 +121,7 @@ class NavidromeService {
         data['subsonic-response'].artists?.artist?.map((artist: any) => ({
           id: artist.id,
           name: artist.name,
-          coverArt: artist.coverArt
-            ? `${
-                this.credentials?.serverUrl
-              }/rest/getCoverArt?id=${artist.coverArt}&${new URLSearchParams(
-                this.generateAuthParams()
-              ).toString()}`
-            : null,
+          coverArt: this.getCoverArtUrl(artist.coverArt),
           albumCount: artist.albumCount || 0,
         })) || []
       );
@@ -170,7 +158,7 @@ class NavidromeService {
           id: album.id,
           name: album.name,
           artist: album.artist,
-          coverArt: album.coverArt ? `${this.credentials?.serverUrl}/rest/getCoverArt?id=${album.coverArt}&${new URLSearchParams(this.generateAuthParams()).toString()}` : null,
+          coverArt: this.getCoverArtUrl(album.coverArt),
           year: album.year,
           genre: album.genre,
           trackCount: album.songCount || 0,
@@ -187,7 +175,7 @@ class NavidromeService {
           track: song.track,
           year: song.year,
           genre: song.genre,
-          coverArt: song.coverArt ? `${this.credentials?.serverUrl}/rest/getCoverArt?id=${song.coverArt}&${new URLSearchParams(this.generateAuthParams()).toString()}` : null,
+          coverArt: this.getCoverArtUrl(song.coverArt),
           path: `${this.credentials?.serverUrl}/rest/stream?id=${song.id}&${new URLSearchParams(this.generateAuthParams()).toString()}`,
         })) || [],
         artists: result.artist || [],
@@ -195,6 +183,70 @@ class NavidromeService {
     } catch (error) {
       console.error('Search failed:', error);
       throw error;
+    }
+  }
+
+  async getArtist(id: string): Promise<Artist> {
+    try {
+      const response = await this.api.get('/getArtist', {
+        params: {
+          ...this.generateAuthParams(),
+          id,
+        },
+      });
+
+      const data: SubsonicResponse<{ artist: any }> = response.data;
+
+      if (data['subsonic-response'].status === 'failed') {
+        throw new Error(
+          data['subsonic-response'].error?.message || 'Failed to fetch artist'
+        );
+      }
+
+      const artist = data['subsonic-response'].artist;
+
+      return {
+        id: artist.id,
+        name: artist.name,
+        coverArt: this.getCoverArtUrl(artist.coverArt),
+        albumCount: artist.albumCount,
+      };
+    } catch (error) {
+      console.error(`Failed to fetch artist ${id}:`, error);
+      throw error;
+    }
+  }
+
+  async getArtistAlbums(id: string): Promise<Album[]> {
+    try {
+        const response = await this.api.get('/getArtist', {
+            params: {
+                ...this.generateAuthParams(),
+                id,
+            },
+        });
+
+        const data: SubsonicResponse<{ artist: { album: any[] } }> = response.data;
+
+        if (data['subsonic-response'].status === 'failed') {
+            throw new Error(data['subsonic-response'].error?.message || 'Failed to fetch artist albums');
+        }
+
+        const artistData = data['subsonic-response'].artist;
+        return artistData.album.map((album: any) => ({
+            id: album.id,
+            name: album.name,
+            artist: album.artist,
+            coverArt: this.getCoverArtUrl(album.coverArt),
+            year: album.year,
+            genre: album.genre,
+            trackCount: album.songCount || 0,
+            duration: album.duration || 0,
+            createdAt: new Date(album.created || Date.now()),
+        }));
+    } catch (error) {
+        console.error(`Failed to fetch artist albums for artist ${id}:`, error);
+        throw error;
     }
   }
 
@@ -252,7 +304,7 @@ class NavidromeService {
         track: song.track,
         year: song.year,
         genre: song.genre,
-        coverArt: song.coverArt ? `${this.credentials?.serverUrl}/rest/getCoverArt?id=${song.coverArt}&${new URLSearchParams(this.generateAuthParams()).toString()}` : null,
+        coverArt: this.getCoverArtUrl(song.coverArt),
         path: `${this.credentials?.serverUrl}/rest/stream?id=${song.id}&${new URLSearchParams(this.generateAuthParams()).toString()}`,
       })) || [];
     } catch (error) {
@@ -467,6 +519,14 @@ class NavidromeService {
     }
   }
 
+  getCoverArtUrl(id: string): string | null {
+    if (!this.credentials || !id) {
+      return null;
+    }
+    const params = new URLSearchParams(this.generateAuthParams());
+    return `${this.credentials.serverUrl}/rest/getCoverArt?id=${id}&${params.toString()}`;
+  }
+
   async getAlbumTracks(albumId: string): Promise<Track[]> {
     try {
       const response = await this.api.get('/getAlbum', {
@@ -492,8 +552,8 @@ class NavidromeService {
         track: song.track,
         year: song.year,
         genre: song.genre,
-        coverArt: song.coverArt ? `${this.credentials?.serverUrl}/rest/getCoverArt?id=${song.coverArt}&${new URLSearchParams(this.generateAuthParams()).toString()}` : null,
-        path: `${this.credentials?.serverUrl}/rest/stream?id=${song.id}&${new URLSearchParams(this.generateAuthParams()).toString()}`,
+        coverArt: this.getCoverArtUrl(song.coverArt),
+        path: `${this.credentials?.serverUrl}/rest/stream?id=${song.id}&${new URLSearchParams(this.generateAuthParams()).toString()}`
       })) || [];
     } catch (error) {
       console.error('Failed to fetch album tracks:', error);

@@ -50,8 +50,7 @@ export default function Home() {
   };
 
   const handleArtistClick = (artist: Artist) => {
-    // TODO: Implement artist page
-    console.log("Clicked artist:", artist);
+    setLocation(`/artist/${artist.id}`);
   };
 
   return (
