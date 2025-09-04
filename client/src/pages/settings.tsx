@@ -25,6 +25,8 @@ export default function Settings() {
   const {
     theme,
     setTheme,
+    language,
+    setLanguage,
     streamingQuality,
     setStreamingQuality,
     downloadQuality,
@@ -53,6 +55,7 @@ export default function Settings() {
   const handleLanguageChange = (lang: string) => {
     if (lang) {
       i18n.changeLanguage(lang);
+      setLanguage(lang);
     }
   };
 
