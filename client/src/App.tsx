@@ -33,7 +33,8 @@ function AppContent() {
   }, [credentials]);
 
   // Hide bottom navigation on album and playlist detail pages
-  const hideNavigation = location?.startsWith('/album/') || location?.startsWith('/playlist/');
+  const hideNavigation = location?.startsWith('/album/') || location?.startsWith('/playlist/') || location === '/login';
+  const hideMiniPlayer = location === '/login';
 
   return (
     <div className="min-h-screen bg-dark-bg">
@@ -70,7 +71,7 @@ function AppContent() {
       </main>
       
       <>
-        <MiniPlayer />
+        {!hideMiniPlayer && <MiniPlayer />}
         {!hideNavigation && <BottomNavigation />}
       </>
     </div>
