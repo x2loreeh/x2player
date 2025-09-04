@@ -8,6 +8,7 @@ import { MiniPlayer } from "@/components/ui/mini-player";
 import { useAuthStore } from "./stores/authStore";
 import { useEffect } from "react";
 import { navidromeService } from "./services/navidrome";
+import { useSettingsStore } from "./stores/settingsStore";
 
 import Login from "@/pages/login";
 import Home from "@/pages/home";
@@ -17,14 +18,17 @@ import Playlists from "@/pages/playlists";
 import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
+// Componente per la gestione delle route protette
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  // Temporarily disable authentication for development
+  // const { credentials } = useAuthStore();
+  // return credentials ? <>{children}</> : <Redirect to="/login" />;
   return <>{children}</>;
 }
 
 function AppContent() {
   const [location] = useLocation();
   const { credentials } = useAuthStore();
+  const { theme } = useSettingsStore();
 
   useEffect(() => {
     if (credentials) {
@@ -32,12 +36,28 @@ function AppContent() {
     }
   }, [credentials]);
 
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+
+    if (theme === "system") {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light";
+      root.classList.add(systemTheme);
+      return;
+    }
+
+    root.classList.add(theme);
+  }, [theme]);
+
   // Hide bottom navigation on album and playlist detail pages
-  const hideNavigation = location?.startsWith('/album/') || location?.startsWith('/playlist/') || location === '/login';
-  const hideMiniPlayer = location === '/login';
+  const hideNavigation =
+    location?.startsWith("/album/") || location?.startsWith("/playlist/");
 
   return (
-    <div className="min-h-screen bg-dark-bg">
+    <div className="min-h-screen bg-background text-foreground">
       <main className="max-w-sm mx-auto relative">
         <Switch>
           <Route path="/login" component={Login} />
@@ -69,9 +89,9 @@ function AppContent() {
           <Route component={NotFound} />
         </Switch>
       </main>
-      
+
       <>
-        {!hideMiniPlayer && <MiniPlayer />}
+        <MiniPlayer />
         {!hideNavigation && <BottomNavigation />}
       </>
     </div>
