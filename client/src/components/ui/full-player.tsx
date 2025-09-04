@@ -138,11 +138,20 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
 
             {/* Track Info & Actions */}
             <div className="flex justify-between items-center mb-4">
-              <div>
-                <h2 className="text-2xl font-bold">{currentTrack.title}</h2>
-                <p className="text-lg text-gray-400">{currentTrack.artist}</p>
+              <div className="flex-1 min-w-0 overflow-hidden max-w-[calc(100%-60px)]">
+                <div className="overflow-hidden whitespace-nowrap">
+                  <h2 className={cn(
+                    "text-2xl font-bold",
+                    isPlaying && currentTrack?.title && currentTrack.title.length > 20
+                      ? "animate-marquee-bidirectional inline-block"
+                      : "truncate block"
+                  )}>
+                    {currentTrack.title}
+                  </h2>
+                </div>
+                <p className="text-lg text-gray-400 truncate">{currentTrack.artist}</p>
               </div>
-              <button onClick={handleLike} className="p-2">
+              <button onClick={handleLike} className="p-2 flex-shrink-0">
                 <Heart
                   size={24}
                   className={cn(isLiked ? "fill-green-500 text-green-500" : "")}
