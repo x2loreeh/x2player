@@ -91,8 +91,8 @@ export default function Settings() {
           <Card className="bg-dark-surface border-dark-border">
             <CardContent className="p-4">
               <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-spotify-green rounded-full flex items-center justify-center">
-                  <User className="text-dark-bg text-xl" />
+                <div className="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center">
+                  <User className="text-white h-8 w-8" />
                 </div>
                 <div>
                   <h3 className="font-bold text-lg text-dark-text-primary">
