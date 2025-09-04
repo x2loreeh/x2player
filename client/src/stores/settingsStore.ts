@@ -1,27 +1,20 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type Theme = "light" | "dark" | "system";
-type Quality = "low" | "medium" | "high" | "lossless";
-
-interface SettingsState {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-  streamingQuality: Quality;
-  setStreamingQuality: (quality: Quality) => void;
-  downloadQuality: Quality;
-  setDownloadQuality: (quality: Quality) => void;
-}
+type SettingsState = {
+  theme: "light" | "dark" | "system";
+  language: string;
+  setTheme: (theme: "light" | "dark" | "system") => void;
+  setLanguage: (language: string) => void;
+};
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       theme: "system",
+      language: "it",
       setTheme: (theme) => set({ theme }),
-      streamingQuality: "high",
-      setStreamingQuality: (quality) => set({ streamingQuality: quality }),
-      downloadQuality: "high",
-      setDownloadQuality: (quality) => set({ downloadQuality: quality }),
+      setLanguage: (language) => set({ language }),
     }),
     {
       name: "settings-storage",

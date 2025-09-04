@@ -3,8 +3,10 @@ import { usePlayerStore } from "@/stores/playerStore";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { FullPlayer } from "./full-player";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export function MiniPlayer() {
+  const t = useTranslation();
   const [isFullPlayerOpen, setIsFullPlayerOpen] = useState(false);
   const {
     currentTrack,
@@ -128,11 +130,11 @@ export function MiniPlayer() {
                       ? "animate-marquee-bidirectional inline-block"
                       : "truncate block"
                   )}>
-                    {currentTrack?.title || "No track selected"}
+                    {currentTrack?.title || t("No track selected")}
                   </p>
                 </div>
                 <p className="text-dark-text-secondary text-xs truncate block">
-                  {currentTrack?.artist || "Select a song to play"}
+                  {currentTrack?.artist || t("Select a song to play")}
                 </p>
               </div>
             </div>
