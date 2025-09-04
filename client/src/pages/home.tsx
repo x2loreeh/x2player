@@ -9,12 +9,14 @@ import { MockNavidromeService } from "@/services/mockData";
 import { AlbumCard } from "@/components/ui/album-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Album, Artist } from "@shared/schema";
+import { useTranslation } from "react-i18next";
 
 export default function Home() {
   const [, setLocation] = useLocation();
   const { credentials } = useAuthStore();
   const { playQueue } = usePlayerStore();
-  
+  const { t } = useTranslation();
+
   // Use mock service when no credentials are available
   const mockService = new MockNavidromeService();
   const activeService = credentials ? navidromeService : mockService;
@@ -65,7 +67,9 @@ export default function Home() {
 
         {/* Recently Played */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-4 px-4">Ascoltati di recente</h2>
+          <h2 className="text-2xl font-bold mb-4 px-4">
+            {t("home.recentlyPlayed")}
+          </h2>
           {isLoadingRecent ? (
             <div className="flex space-x-4 px-4">
               {Array.from({ length: 2 }).map((_, i) => (
