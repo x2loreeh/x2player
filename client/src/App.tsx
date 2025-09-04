@@ -52,13 +52,9 @@ function AppContent() {
     root.classList.add(theme);
   }, [theme]);
 
-  // Hide bottom navigation on album and playlist detail pages
-  const hideNavigation =
-    location?.startsWith("/album/") || location?.startsWith("/playlist/");
-
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <main className="max-w-sm mx-auto relative">
+      <main className="max-w-sm mx-auto relative pb-32">
         <Switch>
           <Route path="/login" component={Login} />
           <Route path="/">
@@ -92,7 +88,7 @@ function AppContent() {
 
       <>
         <MiniPlayer />
-        {!hideNavigation && <BottomNavigation />}
+        <BottomNavigation />
       </>
     </div>
   );

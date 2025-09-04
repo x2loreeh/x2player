@@ -13,9 +13,10 @@ interface PlayerState {
   repeatMode: 'none' | 'track' | 'queue';
   playlists: Playlist[];
   selectedPlaylist: Playlist | null;
-  
+  likedSongs: string[]; // track IDs
+
   // Actions
-  playTrack: (track: Track) => void;
+  playTrack: (track: Track, queue?: Track[]) => void;
   playQueue: (tracks: Track[], startIndex?: number) => void;
   togglePlay: () => void;
   nextTrack: () => void;
@@ -23,10 +24,12 @@ interface PlayerState {
   seekTo: (position: number) => void;
   setVolume: (volume: number) => void;
   toggleShuffle: () => void;
-  setRepeatMode: (mode: 'none' | 'track' | 'queue') => void;
+  setRepeatMode: () => void;
   setPlaylists: (playlists: Playlist[]) => void;
   setSelectedPlaylist: (playlist: Playlist | null) => void;
   updateProgress: (progress: number, duration: number) => void;
+  toggleLike: (trackId: string) => void;
+  addToQueue: (track: Track) => void;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -41,12 +44,16 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   repeatMode: 'none',
   playlists: [],
   selectedPlaylist: null,
+  likedSongs: [],
   
-  playTrack: (track) => {
+  playTrack: (track, queue) => {
+    const newQueue = queue && queue.length > 0 ? queue : [track];
+    const newIndex = queue ? queue.findIndex(t => t.id === track.id) : 0;
+
     set({
       currentTrack: track,
-      queue: [track],
-      currentIndex: 0,
+      queue: newQueue,
+      currentIndex: newIndex !== -1 ? newIndex : 0,
       isPlaying: true,
     });
   },
@@ -65,13 +72,33 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
   
   nextTrack: () => {
-    const { queue, currentIndex, repeatMode } = get();
+    const { queue, currentIndex, repeatMode, isShuffled } = get();
+    if (queue.length === 0) return;
+
+    if (repeatMode === 'track') {
+      const audio = document.querySelector('audio');
+      if (audio) audio.currentTime = 0;
+      set({ isPlaying: true });
+      return;
+    }
+    
+    if (isShuffled) {
+      const nextIndex = Math.floor(Math.random() * queue.length);
+      set({
+        currentIndex: nextIndex,
+        currentTrack: queue[nextIndex],
+        isPlaying: true,
+      });
+      return;
+    }
+
     let nextIndex = currentIndex + 1;
     
     if (nextIndex >= queue.length) {
       if (repeatMode === 'queue') {
         nextIndex = 0;
       } else {
+        set({ isPlaying: false });
         return;
       }
     }
@@ -84,11 +111,23 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
   
   previousTrack: () => {
-    const { queue, currentIndex } = get();
+    const { queue, currentIndex, repeatMode } = get();
+    if (queue.length === 0) return;
+
+    const audio = document.querySelector('audio');
+    if (audio && audio.currentTime > 3) {
+      audio.currentTime = 0;
+      return;
+    }
+
     let prevIndex = currentIndex - 1;
     
     if (prevIndex < 0) {
-      prevIndex = queue.length - 1;
+      if (repeatMode === 'queue') {
+        prevIndex = queue.length - 1;
+      } else {
+        prevIndex = 0; // Go to start of track instead of wrapping
+      }
     }
     
     set({
@@ -110,8 +149,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     set((state) => ({ isShuffled: !state.isShuffled }));
   },
   
-  setRepeatMode: (mode) => {
-    set({ repeatMode: mode });
+  setRepeatMode: () => {
+    const { repeatMode } = get();
+    const modes: ('none' | 'track' | 'queue')[] = ['none', 'queue', 'track'];
+    const nextIndex = (modes.indexOf(repeatMode) + 1) % modes.length;
+    set({ repeatMode: modes[nextIndex] });
   },
   
   updateProgress: (progress, duration) => {
@@ -124,5 +166,22 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
   setSelectedPlaylist: (playlist) => {
     set({ selectedPlaylist: playlist });
+  },
+
+  toggleLike: (trackId) => {
+    set((state) => {
+      const { likedSongs } = state;
+      if (likedSongs.includes(trackId)) {
+        return { likedSongs: likedSongs.filter((id) => id !== trackId) };
+      } else {
+        return { likedSongs: [...likedSongs, trackId] };
+      }
+    });
+  },
+
+  addToQueue: (track) => {
+    set((state) => ({
+      queue: [...state.queue, track],
+    }));
   },
 }));

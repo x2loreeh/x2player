@@ -23,6 +23,7 @@ import { toast } from "@/hooks/use-toast";
 import type { Playlist, Track as Song } from "@shared/schema";
 import { mockPlaylists } from "@/services/mockData";
 import PlaylistFormModal from "@/components/ui/playlist-form-modal";
+import { useRoute } from "wouter";
 
 export default function Playlists() {
   const queryClient = useQueryClient();
@@ -331,6 +332,80 @@ export default function Playlists() {
           }}
         />
       )}
+    </div>
+  );
+}
+
+function PlaylistPage() {
+  const [, params] = useRoute("/playlist/:id");
+  const { playQueue } = usePlayerStore();
+
+  const { data: playlists, isLoading: isLoadingPlaylists } = useQuery({
+    queryKey: ["playlists"],
+    queryFn: async () => mockPlaylists, // Using mock data
+  });
+
+  const playlist = useMemo(() => {
+    if (!params?.id || !playlists) return undefined;
+    return playlists.find((p) => p.id === params.id);
+  }, [params?.id, playlists]);
+
+  const { data: tracks, isLoading: isLoadingTracks } = useQuery({
+    queryKey: ["playlistTracks", playlist?.id],
+    queryFn: () => {
+      if (playlist?.id) {
+        return navidromeService.getPlaylistTracks(playlist.id);
+      }
+      return Promise.resolve([]);
+    },
+    enabled: !!playlist,
+  });
+
+  if (isLoadingPlaylists || isLoadingTracks) {
+    return <div>Loading...</div>;
+  }
+
+  if (!playlist) {
+    return <div>Playlist not found</div>;
+  }
+
+  return (
+    <div className="px-6 pt-6">
+      {/* Header */}
+      <div className="flex items-end gap-6 mb-8">
+        <div className="w-48 h-48 bg-muted rounded-md flex items-center justify-center">
+          <Music className="w-24 h-24 text-muted-foreground" />
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold uppercase text-muted-foreground">
+            Playlist
+          </h2>
+          <h1 className="text-5xl font-bold">{playlist.name}</h1>
+          <p className="text-muted-foreground mt-2">{playlist.comment}</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            {playlist.songCount} songs
+          </p>
+        </div>
+      </div>
+
+      {/* Tracks */}
+      <div>
+        {tracks &&
+          tracks.map((track: Song, index: number) => (
+            <div
+              key={track.id}
+              className="flex items-center p-2 -mx-2 rounded-md hover:bg-white/10 cursor-pointer"
+              onClick={() => playQueue(tracks, index)}
+            >
+              <div className="w-8 text-center text-gray-400">{index + 1}</div>
+              <div className="flex-1">
+                <p className="font-medium">{track.title}</p>
+                <p className="text-sm text-muted-foreground">{track.artist}</p>
+              </div>
+              <div className="text-sm text-muted-foreground">{track.album}</div>
+            </div>
+          ))}
+      </div>
     </div>
   );
 }

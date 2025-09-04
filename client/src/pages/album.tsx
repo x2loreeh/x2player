@@ -15,6 +15,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { toast } from "@/hooks/use-toast";
 
 export default function AlbumPage() {
   const [, params] = useRoute("/album/:id");
@@ -24,7 +25,7 @@ export default function AlbumPage() {
   const [isLoading, setIsLoading] = useState(true);
   
   const { credentials } = useAuthStore();
-  const { playQueue, playTrack } = usePlayerStore();
+  const { playQueue, likedSongs, toggleLike, addToQueue, playTrack } = usePlayerStore();
   
   // Use mock service when no credentials are available
   const mockService = new MockNavidromeService();
@@ -120,7 +121,7 @@ export default function AlbumPage() {
   }
 
   return (
-    <div className="min-h-screen bg-dark-bg text-dark-text-primary pb-32">
+    <div className="bg-dark-bg text-dark-text-primary">
       <div className="max-w-sm mx-auto">
         {/* Header */}
         <div className="px-4 py-6">
@@ -192,12 +193,10 @@ export default function AlbumPage() {
             {tracks.map((track, index) => (
               <div
                 key={track.id}
-                className="flex items-center py-2 cursor-pointer hover:bg-dark-surface -mx-2 px-2 rounded-lg transition-colors"
-                onClick={() => handlePlayTrack(track, index)}
+                className="flex items-center p-2 -mx-2 rounded-md hover:bg-white/10 cursor-pointer"
+                onClick={() => playQueue(tracks, index)}
               >
-                <div className="w-6 text-dark-text-secondary text-sm font-medium mr-4">
-                  {index + 1}
-                </div>
+                <div className="w-8 text-center text-gray-400">{index + 1}</div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-white truncate">{track.title}</p>
                   <p className="text-dark-text-secondary text-sm">
@@ -212,19 +211,38 @@ export default function AlbumPage() {
                     <SheetContent side="bottom" className="bg-transparent border-none p-0">
                       <div className="mx-auto max-w-sm bg-dark-surface text-dark-text-primary rounded-t-2xl p-6">
                         <SheetHeader className="text-left">
-                          <SheetTitle className="text-xl text-white">{track.title}</SheetTitle>
+                          <SheetTitle className="text-xl text-white truncate">{track.title}</SheetTitle>
                           <SheetDescription className="text-base text-white">
                             {track.artist}
                           </SheetDescription>
                         </SheetHeader>
                         <div className="py-4 grid gap-2">
-                          <Button variant="ghost" className="w-full justify-start text-lg p-4 text-white hover:bg-dark-elevated hover:text-white">
-                            <Heart className="mr-4 h-5 w-5" />
-                            Save Song
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start text-lg p-4 text-white hover:bg-dark-elevated hover:text-white"
+                            onClick={() => {
+                              toggleLike(track.id);
+                              toast({
+                                title: likedSongs.includes(track.id) ? "Removed from saved songs" : "Added to saved songs",
+                              });
+                            }}
+                          >
+                            <Heart className={`mr-4 h-5 w-5 ${likedSongs.includes(track.id) ? 'fill-white' : ''}`} />
+                            {likedSongs.includes(track.id) ? "Saved Song" : "Save Song"}
                           </Button>
-                          <Button variant="ghost" className="w-full justify-start text-lg p-4 text-white hover:bg-dark-elevated hover:text-white">
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start text-lg p-4 text-white hover:bg-dark-elevated hover:text-white"
+                            onClick={() => {
+                              addToQueue(track);
+                              toast({
+                                title: "Added to queue",
+                                description: track.title,
+                              });
+                            }}
+                          >
                             <ListPlus className="mr-4 h-5 w-5" />
-                            Add to Playlist
+                            Add to queue
                           </Button>
                         </div>
                       </div>

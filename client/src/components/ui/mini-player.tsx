@@ -2,12 +2,10 @@ import { SkipBack, SkipForward, Play, Pause } from "lucide-react";
 import { usePlayerStore } from "@/stores/playerStore";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "wouter";
 import { FullPlayer } from "./full-player";
 
 export function MiniPlayer() {
   const [isFullPlayerOpen, setIsFullPlayerOpen] = useState(false);
-  const [location] = useLocation();
   const {
     currentTrack,
     isPlaying,
@@ -17,14 +15,12 @@ export function MiniPlayer() {
     nextTrack,
     previousTrack,
     updateProgress,
+    seekTo,
   } = usePlayerStore();
   
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Adjust position based on whether navigation is visible
-  const hideNavigation = location?.startsWith('/album/') || location?.startsWith('/playlist/');
-
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
@@ -64,6 +60,24 @@ export function MiniPlayer() {
 
   useEffect(() => {
     const audio = audioRef.current;
+    if (!audio) return;
+
+    const unsubscribe = usePlayerStore.subscribe(
+      (state, prevState) => {
+        if (
+          state.progress !== prevState.progress &&
+          Math.abs(state.progress - audio.currentTime) > 1.5
+        ) {
+          audio.currentTime = state.progress;
+        }
+      }
+    );
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const audio = audioRef.current;
     if (!audio || !currentTrack) return;
 
     audio.src = currentTrack.path;
@@ -82,7 +96,7 @@ export function MiniPlayer() {
       {currentTrack && <audio ref={audioRef} preload="metadata" />}
       <div className={cn(
         "fixed left-0 right-0 z-40 px-4 py-3 max-w-sm mx-auto",
-        hideNavigation ? "bottom-4" : "bottom-16"
+        "bottom-16"
       )}>
         <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-4 py-3 shadow-2xl">
           <div className="flex items-center gap-3">
@@ -172,11 +186,19 @@ export function MiniPlayer() {
           </div>
           
           {/* Progress Bar */}
-          <div className="mt-2">
-            <div className="w-full bg-white/20 h-1 rounded-full backdrop-blur-sm">
+          <div className="mt-2 group">
+            <div className="w-full bg-white/20 h-1 rounded-full backdrop-blur-sm relative">
               <div
                 className="bg-white/90 h-1 rounded-full transition-all duration-200 shadow-sm"
                 style={{ width: `${progressPercentage}%` }}
+              />
+              <input
+                type="range"
+                min="0"
+                max={duration || 0}
+                value={progress}
+                onChange={(e) => seekTo(Number(e.target.value))}
+                className="absolute w-full h-full top-0 left-0 opacity-0 cursor-pointer"
               />
             </div>
           </div>

@@ -13,6 +13,14 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { usePlayerStore } from "@/stores/playerStore";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface FullPlayerProps {
   isOpen: boolean;
@@ -20,9 +28,45 @@ interface FullPlayerProps {
 }
 
 export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
-  const { currentTrack, isPlaying, togglePlay } = usePlayerStore();
+  const {
+    currentTrack,
+    isPlaying,
+    togglePlay,
+    seekTo,
+    progress,
+    duration,
+    nextTrack,
+    previousTrack,
+    isShuffled,
+    toggleShuffle,
+    repeatMode,
+    setRepeatMode,
+    likedSongs,
+    toggleLike,
+    addToQueue,
+  } = usePlayerStore();
+  const { toast } = useToast();
 
   if (!currentTrack) return null;
+
+  const isLiked = likedSongs.includes(currentTrack.id);
+
+  const handleLike = () => {
+    toggleLike(currentTrack.id);
+    toast({
+      title: isLiked ? "Removed from Liked Songs" : "Added to Liked Songs",
+      duration: 2000,
+    });
+  };
+
+  const handleAddToQueue = () => {
+    addToQueue(currentTrack);
+    toast({
+      title: "Added to queue",
+      description: `"${currentTrack.title}" has been added to the end of the queue.`,
+      duration: 2000,
+    });
+  };
 
   const playerVariants = {
     hidden: { y: "100%", opacity: 0 },
@@ -69,9 +113,18 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
                 <p className="text-sm uppercase">Playing from album</p>
                 <p className="font-bold">{currentTrack.album}</p>
               </div>
-              <button className="p-2">
-                <MoreHorizontal size={28} />
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-2">
+                    <MoreHorizontal size={28} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={handleAddToQueue}>
+                    Add to queue
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {/* Cover Art */}
@@ -89,33 +142,38 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
                 <h2 className="text-2xl font-bold">{currentTrack.title}</h2>
                 <p className="text-lg text-gray-400">{currentTrack.artist}</p>
               </div>
-              <button className="p-2">
-                <Heart size={24} />
+              <button onClick={handleLike} className="p-2">
+                <Heart
+                  size={24}
+                  className={cn(isLiked ? "fill-green-500 text-green-500" : "")}
+                />
               </button>
             </div>
 
             {/* Progress Bar */}
             <div className="mb-4">
               <Slider
-                defaultValue={[0]}
-                max={
-                  currentTrack.duration ? Math.round(currentTrack.duration) : 0
-                }
+                value={[progress]}
+                max={duration ? Math.round(duration) : 0}
                 step={1}
                 className="w-full"
+                onValueChange={(value) => seekTo(value[0])}
               />
               <div className="flex justify-between text-xs mt-1">
-                <span>0:00</span>
+                <span>{formatDuration(progress)}</span>
                 <span>{formatDuration(currentTrack.duration)}</span>
               </div>
             </div>
 
             {/* Controls */}
             <div className="flex justify-around items-center mb-4">
-              <button className="p-2 text-green-500">
+              <button
+                onClick={toggleShuffle}
+                className={cn("p-2", isShuffled && "text-green-500")}
+              >
                 <Shuffle size={24} />
               </button>
-              <button className="p-2">
+              <button onClick={previousTrack} className="p-2">
                 <SkipBack size={32} />
               </button>
               <button
@@ -128,11 +186,17 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
                   <Play size={32} className="ml-1" />
                 )}
               </button>
-              <button className="p-2">
+              <button onClick={nextTrack} className="p-2">
                 <SkipForward size={32} />
               </button>
-              <button className="p-2">
+              <button
+                onClick={setRepeatMode}
+                className={cn("p-2", repeatMode !== "none" && "text-green-500")}
+              >
                 <Repeat size={24} />
+                {repeatMode === "track" && (
+                  <div className="w-1 h-1 bg-green-500 rounded-full absolute mt-1" />
+                )}
               </button>
             </div>
 
