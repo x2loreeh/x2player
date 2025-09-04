@@ -1,178 +1,150 @@
-import { useState, useEffect, useRef } from "react";
-import { ChevronDown, Heart, SkipBack, Play, Pause, SkipForward, Volume2 } from "lucide-react";
+import {
+  ChevronDown,
+  Heart,
+  ListMusic,
+  MoreHorizontal,
+  Pause,
+  Play,
+  Repeat,
+  Shuffle,
+  SkipBack,
+  SkipForward,
+} from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 import { usePlayerStore } from "@/stores/playerStore";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface FullPlayerProps {
   isOpen: boolean;
-  onClose: () => void;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
-export function FullPlayer({ isOpen, onClose }: FullPlayerProps) {
-  const {
-    currentTrack,
-    isPlaying,
-    progress,
-    volume,
-    nextTrack,
-    previousTrack,
-    togglePlay,
-    seekTo,
-    setVolume,
-  } = usePlayerStore();
+export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
+  const { currentTrack, isPlaying, togglePlay } = usePlayerStore();
 
-  const [isDragging, setIsDragging] = useState(false);
-  const progressRef = useRef<HTMLDivElement>(null);
+  if (!currentTrack) return null;
 
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  const playerVariants = {
+    hidden: { y: "100%", opacity: 0 },
+    visible: { y: 0, opacity: 1 },
+    exit: { y: "100%", opacity: 0 },
   };
 
-  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!currentTrack || !progressRef.current) return;
-    
-    const rect = progressRef.current.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const percentage = clickX / rect.width;
-    const newTime = percentage * (currentTrack.duration || 0);
-    
-    seekTo(newTime);
+  const formatDuration = (duration: number | null) => {
+    if (duration === null || isNaN(duration)) return "0:00";
+    return new Date(duration * 1000).toISOString().substring(14, 19);
   };
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVolume(parseInt(e.target.value) / 100);
-  };
-
-  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-dark-bg z-[100] flex flex-col overflow-hidden">
-      {/* Background with blurred cover */}
-      {currentTrack?.coverArt && (
-        <div className="absolute inset-0">
-          <img
-            src={currentTrack.coverArt}
-            alt="Background"
-            className="w-full h-full object-cover scale-110 blur-2xl opacity-20"
-          />
-          <div className="absolute inset-0 bg-dark-bg/60"></div>
-        </div>
-      )}
-      
-      {/* Content overlay */}
-      <div className="relative z-10 flex flex-col h-full">
-        {/* Header */}
-        <div className="flex items-center justify-start p-4">
-          <button
-            onClick={onClose}
-            className="w-10 h-10 bg-dark-surface/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-dark-elevated/80 transition-colors"
-          >
-            <ChevronDown className="h-6 w-6 text-white" />
-          </button>
-        </div>
-
-        {/* Album Art */}
-        <div className="flex-1 flex items-center justify-center px-8 py-4">
-          <div className="w-80 h-80 max-w-[80vw] max-h-[80vw] rounded-full overflow-hidden shadow-2xl">
-            {currentTrack?.coverArt ? (
-              <img
-                src={currentTrack.coverArt}
-                alt={`${currentTrack.album} cover`}
-                className={`w-full h-full object-cover ${isPlaying ? 'animate-spin-slow' : ''}`}
-                style={{ animationDuration: '10s' }}
-              />
-            ) : (
-              <div className="w-full h-full bg-white flex items-center justify-center rounded-full">
-                <Play className="h-20 w-20 text-black opacity-60" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Track Info */}
-        <div className="px-8 pb-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex-1 min-w-0">
-              <h2 className="text-2xl font-bold text-white truncate mb-1">
-                {currentTrack?.title || "No track selected"}
-              </h2>
-              <p className="text-dark-text-secondary text-lg truncate">
-                {currentTrack?.artist || "Select a song to play"}
-              </p>
-            </div>
-            <button className="ml-4 p-2">
-              <Heart className="h-6 w-6 text-dark-text-secondary hover:text-white transition-colors" />
-            </button>
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="px-8 pb-4">
-          <div
-            ref={progressRef}
-            className="relative w-full h-1 bg-dark-surface rounded-full cursor-pointer mb-2"
-            onClick={handleProgressClick}
-          >
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 bg-dark-bg z-[100] flex flex-col overflow-hidden"
+          variants={playerVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          {/* Background with blurred cover */}
+          {currentTrack?.coverArt && (
             <div
-              className="absolute top-0 left-0 h-full bg-white rounded-full transition-all duration-150"
-              style={{ width: `${(progress / (currentTrack.duration || 1)) * 100}%` }}
+              className="absolute inset-0 bg-cover bg-center filter blur-2xl scale-110"
+              style={{
+                backgroundImage: currentTrack.coverArt
+                  ? `url(${currentTrack.coverArt})`
+                  : undefined,
+              }}
             />
-          </div>
-          <div className="flex justify-between text-xs text-dark-text-secondary">
-            <span>{formatTime(progress)}</span>
-            <span>{formatTime(currentTrack.duration || 0)}</span>
-          </div>
-        </div>
+          )}
+          <div className="absolute inset-0 bg-black/50" />
 
-        {/* Controls */}
-        <div className="px-8 pb-4">
-          <div className="flex items-center justify-center space-x-8 mb-4">
-            <button
-              onClick={previousTrack}
-              className="p-2 text-white hover:scale-105 transition-transform"
-            >
-              <SkipBack className="h-8 w-8" />
-            </button>
-            
-            <button
-              onClick={togglePlay}
-              className="w-16 h-16 bg-white rounded-full flex items-center justify-center hover:scale-105 transition-transform shadow-lg"
-            >
-              {isPlaying ? (
-                <Pause className="h-8 w-8 text-black" />
-              ) : (
-                <Play className="h-8 w-8 text-black ml-1" />
-              )}
-            </button>
-            
-            <button
-              onClick={nextTrack}
-              className="p-2 text-white hover:scale-105 transition-transform"
-            >
-              <SkipForward className="h-8 w-8" />
-            </button>
-          </div>
+          <div className="relative z-10 flex-1 flex flex-col p-4 text-white">
+            {/* Header */}
+            <div className="flex justify-between items-center">
+              <button onClick={() => setIsOpen(false)} className="p-2">
+                <ChevronDown size={28} />
+              </button>
+              <div className="text-center">
+                <p className="text-sm uppercase">Playing from album</p>
+                <p className="font-bold">{currentTrack.album}</p>
+              </div>
+              <button className="p-2">
+                <MoreHorizontal size={28} />
+              </button>
+            </div>
 
-          {/* Volume Control */}
-          <div className="flex items-center space-x-4">
-            <Volume2 className="h-5 w-5 text-dark-text-secondary" />
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={volume * 100}
-              onChange={handleVolumeChange}
-              className="flex-1 h-1 bg-dark-surface rounded-full appearance-none cursor-pointer
-                       [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 
-                       [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer"
-            />
-          </div>
-        </div>
+            {/* Cover Art */}
+            <div className="flex-1 flex items-center justify-center my-8">
+              <img
+                src={currentTrack.coverArt ?? ""}
+                alt={currentTrack.title}
+                className="w-full max-w-xs aspect-square rounded-lg shadow-2xl"
+              />
+            </div>
 
-        {/* Bottom Spacing */}
-        <div className="h-8"></div>
-      </div>
-    </div>
+            {/* Track Info & Actions */}
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-2xl font-bold">{currentTrack.title}</h2>
+                <p className="text-lg text-gray-400">{currentTrack.artist}</p>
+              </div>
+              <button className="p-2">
+                <Heart size={24} />
+              </button>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-4">
+              <Slider
+                defaultValue={[0]}
+                max={
+                  currentTrack.duration ? Math.round(currentTrack.duration) : 0
+                }
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs mt-1">
+                <span>0:00</span>
+                <span>{formatDuration(currentTrack.duration)}</span>
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="flex justify-around items-center mb-4">
+              <button className="p-2 text-green-500">
+                <Shuffle size={24} />
+              </button>
+              <button className="p-2">
+                <SkipBack size={32} />
+              </button>
+              <button
+                onClick={togglePlay}
+                className="bg-white text-black rounded-full w-16 h-16 flex items-center justify-center"
+              >
+                {isPlaying ? (
+                  <Pause size={32} />
+                ) : (
+                  <Play size={32} className="ml-1" />
+                )}
+              </button>
+              <button className="p-2">
+                <SkipForward size={32} />
+              </button>
+              <button className="p-2">
+                <Repeat size={24} />
+              </button>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="flex justify-between items-center text-xs">
+              <button className="p-2">
+                <ListMusic size={20} />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

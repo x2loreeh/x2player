@@ -183,9 +183,9 @@ export function MiniPlayer() {
         </div>
       </div>
       
-      <FullPlayer 
-        isOpen={isFullPlayerOpen} 
-        onClose={() => setIsFullPlayerOpen(false)} 
+      <FullPlayer
+        isOpen={isFullPlayerOpen}
+        setIsOpen={setIsFullPlayerOpen}
       />
     </>
   );
