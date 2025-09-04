@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
 import { useAuthStore } from "@/stores/authStore";
@@ -7,13 +7,15 @@ import { MockNavidromeService } from "@/services/mockData";
 import { AlbumCard } from "@/components/ui/album-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Artist, Album } from "@shared/schema";
-import { Music, Play, ChevronLeft } from "lucide-react";
+import { Music, Play, ChevronLeft, Heart } from "lucide-react";
 
 export default function ArtistPage() {
   const [, setLocation] = useLocation();
   const params = useParams();
   const { credentials } = useAuthStore();
   const artistId = params.id;
+  const [isLiked, setIsLiked] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const mockService = new MockNavidromeService();
   const activeService = credentials ? navidromeService : mockService;
@@ -38,6 +40,14 @@ export default function ArtistPage() {
 
   const handleAlbumClick = (album: Album) => {
     setLocation(`/album/${album.id}`);
+  };
+
+  const handleLikeClick = () => {
+    setIsLiked(!isLiked);
+    if (!isLiked) {
+      setIsAnimating(true);
+      setTimeout(() => setIsAnimating(false), 500); // Animation duration
+    }
   };
 
   return (
@@ -69,6 +79,16 @@ export default function ArtistPage() {
               >
                 <ChevronLeft className="h-6 w-6 text-white" />
               </button>
+              <button
+                onClick={handleLikeClick}
+                className="absolute top-4 right-4 bg-black/50 rounded-full p-2"
+              >
+                <Heart
+                  className={`h-6 w-6 text-white ${
+                    isLiked ? "fill-white" : ""
+                  } ${isAnimating ? "animate-vibrate" : ""}`}
+                />
+              </button>
             </>
           )}
         </div>
@@ -88,14 +108,23 @@ export default function ArtistPage() {
           ) : (
             <div className="grid grid-cols-2 gap-4">
               {albums?.map((album) => (
-                <AlbumCard
-                  key={album.id}
-                  album={album}
-                  onClick={() => handleAlbumClick(album)}
-                />
+                <div>
+                  <AlbumCard
+                    key={album.id}
+                    album={album}
+                    onClick={() => handleAlbumClick(album)}
+                  />
+                  <p className="text-xs text-gray-400 mt-1">{album.year}</p>
+                </div>
               ))}
             </div>
           )}
+        </div>
+        <div className="p-4">
+          <h2 className="text-2xl font-bold mb-4">About</h2>
+          <p className="text-sm text-gray-400">
+            {artist?.artistInfo?.biography ?? "No biography available."}
+          </p>
         </div>
       </div>
     </div>

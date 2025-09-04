@@ -9,6 +9,16 @@ import type {
   Artist,
 } from "../../../shared/schema";
 
+type ArtistInfo = {
+  biography?: string;
+};
+
+declare module "../../../shared/schema" {
+  interface Artist {
+    artistInfo?: ArtistInfo;
+  }
+}
+
 class NavidromeService {
   api: AxiosInstance;
   credentials: NavidromeCredentials | null = null;
@@ -210,6 +220,7 @@ class NavidromeService {
         name: artist.name,
         coverArt: this.getCoverArtUrl(artist.coverArt),
         albumCount: artist.albumCount,
+        artistInfo: artist.artistInfo,
       };
     } catch (error) {
       console.error(`Failed to fetch artist ${id}:`, error);
