@@ -86,41 +86,44 @@ export function MiniPlayer() {
       )}>
         <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl px-4 py-3 shadow-2xl">
           <div className="flex items-center gap-3">
-          <div 
-            className="flex items-center space-x-3 flex-1 min-w-0 max-w-[calc(100%-140px)] cursor-pointer hover:bg-white/5 -mx-2 px-2 py-1 rounded-xl transition-colors"
-            onClick={() => setIsFullPlayerOpen(true)}
-          >
-            <div className="flex-shrink-0">
-              {currentTrack?.coverArt ? (
-                <img
-                  src={currentTrack.coverArt}
-                  alt="Now playing"
-                  className="w-12 h-12 rounded-xl object-cover shadow-lg"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-                  <div className="w-6 h-6 rounded bg-white/30"></div>
-                </div>
+            <div
+              className={cn(
+                "flex items-center space-x-3 flex-1 min-w-0 max-w-[calc(100%-140px)] transition-colors",
+                currentTrack && "cursor-pointer hover:bg-white/5 -mx-2 px-2 py-1 rounded-xl"
               )}
-            </div>
-            <div className="flex-1 min-w-0 overflow-hidden max-w-[calc(100%-60px)]">
-              <div className="overflow-hidden whitespace-nowrap">
-                <p className={cn(
-                  "font-semibold text-sm text-dark-text-primary",
-                  isPlaying && currentTrack?.title && currentTrack.title.length > 18
-                    ? "animate-marquee-bidirectional inline-block"
-                    : "truncate block"
-                )}>
-                  {currentTrack?.title || "No track selected"}
+              onClick={() => currentTrack && setIsFullPlayerOpen(true)}
+            >
+              <div className="flex-shrink-0">
+                {currentTrack?.coverArt ? (
+                  <img
+                    src={currentTrack.coverArt}
+                    alt="Now playing"
+                    className="w-12 h-12 rounded-xl object-cover shadow-lg"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+                    <div className="w-6 h-6 rounded bg-white/30"></div>
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0 overflow-hidden max-w-[calc(100%-60px)]">
+                <div className="overflow-hidden whitespace-nowrap">
+                  <p className={cn(
+                    "font-semibold text-sm text-dark-text-primary",
+                    isPlaying && currentTrack?.title && currentTrack.title.length > 18
+                      ? "animate-marquee-bidirectional inline-block"
+                      : "truncate block"
+                  )}>
+                    {currentTrack?.title || "No track selected"}
+                  </p>
+                </div>
+                <p className="text-dark-text-secondary text-xs truncate block">
+                  {currentTrack?.artist || "Select a song to play"}
                 </p>
               </div>
-              <p className="text-dark-text-secondary text-xs truncate block">
-                {currentTrack?.artist || "Select a song to play"}
-              </p>
             </div>
-          </div>
           
-          <div className="flex items-center space-x-2 flex-shrink-0">
+            <div className="flex items-center space-x-2 flex-shrink-0">
             <button
               onClick={previousTrack}
               disabled={!currentTrack}
