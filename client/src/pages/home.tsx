@@ -156,7 +156,7 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="flex overflow-x-auto space-x-4 px-4">
+            <div className="flex overflow-x-auto space-x-4 px-4 py-2">
               {randomArtists?.map((artist) => (
                 <div
                   key={artist.id}
