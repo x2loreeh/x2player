@@ -58,7 +58,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-bg text-dark-text-primary pb-32">
+    <div className="min-h-screen bg-dark-bg text-dark-text-primary pb-48">
       <div className="max-w-sm mx-auto">
         {/* Header */}
         <div className="px-4 py-6">
