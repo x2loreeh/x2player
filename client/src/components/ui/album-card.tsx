@@ -74,11 +74,6 @@ export function AlbumCard({
         <p className="text-dark-text-secondary text-xs truncate">
           {album.artist}
         </p>
-        {album.year && (
-          <p className="text-dark-text-secondary text-xs">
-            {album.year}
-          </p>
-        )}
       </div>
     </div>
   );
