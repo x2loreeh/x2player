@@ -65,26 +65,24 @@ export default function Home() {
         </div>
 
         {/* Recently Played */}
-        <div className="px-4 mb-8">
-          <h2 className="text-2xl font-bold mb-4">Ascoltati di recente</h2>
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4 px-4">Ascoltati di recente</h2>
           {isLoadingRecent ? (
-            <div className="grid grid-cols-2 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="relative">
+            <div className="flex space-x-4 px-4">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="w-40 flex-shrink-0">
                   <Skeleton className="w-full aspect-square rounded-2xl bg-dark-border mb-3" />
-                  <div className="absolute bottom-4 left-4 right-4 space-y-1">
-                    <Skeleton className="h-5 w-28 bg-dark-border rounded" />
-                    <Skeleton className="h-4 w-20 bg-dark-border rounded" />
-                  </div>
+                  <Skeleton className="h-5 w-28 bg-dark-border rounded" />
+                  <Skeleton className="h-4 w-20 bg-dark-border rounded mt-1" />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex overflow-x-auto space-x-4 px-4">
               {recentAlbums?.slice(0, 4).map((album) => (
                 <div
                   key={album.id}
-                  className="relative cursor-pointer transition-all duration-300 hover:scale-[1.02] group"
+                  className="w-40 flex-shrink-0 cursor-pointer transition-all duration-300 hover:scale-[1.02] group"
                   onClick={() => handleAlbumClick(album)}
                 >
                   <div className="relative overflow-hidden rounded-2xl aspect-square">
@@ -104,15 +102,13 @@ export default function Home() {
                         <Play className="h-6 w-6 text-black ml-1" />
                       </div>
                     </div>
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                      <h3 className="font-bold text-white text-base truncate">
-                        {album.name}
-                      </h3>
-                      <p className="text-white/70 text-sm truncate">
-                        {album.artist}
-                      </p>
-                    </div>
                   </div>
+                  <h3 className="font-bold text-base truncate mt-2">
+                    {album.name}
+                  </h3>
+                  <p className="text-dark-text-secondary text-sm truncate">
+                    {album.artist}
+                  </p>
                 </div>
               )) || (
                 <div className="col-span-2 text-center text-dark-text-secondary py-8">
@@ -125,73 +121,47 @@ export default function Home() {
         </div>
 
         {/* Discovery Section */}
-        <div className="px-4 mb-8">
-          <h2 className="text-2xl font-bold mb-4">Discovery</h2>
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4 px-4">Discovery</h2>
           {isLoadingRandom ? (
-            <div className="grid grid-cols-2 gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="relative">
+            <div className="flex space-x-4 px-4">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="w-40 flex-shrink-0">
                   <Skeleton className="w-full aspect-square rounded-2xl bg-dark-border" />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex overflow-x-auto space-x-4 px-4">
               {randomAlbums?.map((album) => (
-                <div
+                <AlbumCard
                   key={album.id}
-                  className="relative cursor-pointer transition-all duration-300 hover:scale-[1.02] group"
+                  album={album}
                   onClick={() => handleAlbumClick(album)}
-                >
-                  <div className="relative overflow-hidden rounded-2xl aspect-square">
-                    {album.coverArt ? (
-                      <img
-                        src={album.coverArt}
-                        alt={`${album.name} cover`}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-white flex items-center justify-center">
-                        <Music className="h-12 w-12 text-black opacity-60" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl">
-                        <Play className="h-6 w-6 text-black ml-1" />
-                      </div>
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                      <h3 className="font-bold text-white text-base truncate">
-                        {album.name}
-                      </h3>
-                      <p className="text-white/70 text-sm truncate">
-                        {album.artist}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                  className="w-40 flex-shrink-0"
+                />
               ))}
             </div>
           )}
         </div>
 
         {/* Artists Section */}
-        <div className="px-4 mb-8">
+        <div className="mb-8">
           {isLoadingArtists ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex space-x-4 px-4">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex flex-col items-center">
+                <div key={i} className="flex flex-col items-center w-32 flex-shrink-0">
                   <Skeleton className="w-32 h-32 rounded-full bg-dark-border" />
                   <Skeleton className="h-5 w-24 bg-dark-border rounded mt-2" />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex overflow-x-auto space-x-4 px-4">
               {randomArtists?.map((artist) => (
                 <div
                   key={artist.id}
-                  className="flex flex-col items-center cursor-pointer transition-all duration-300 hover:scale-105 group"
+                  className="flex flex-col items-center cursor-pointer transition-all duration-300 hover:scale-105 group w-32 flex-shrink-0"
                   onClick={() => handleArtistClick(artist)}
                 >
                   <div className="relative w-32 h-32 rounded-full overflow-hidden">
