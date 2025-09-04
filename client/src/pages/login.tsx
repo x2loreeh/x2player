@@ -76,10 +76,10 @@ export default function Login() {
     <div className="min-h-screen bg-dark-bg text-dark-text-primary flex flex-col justify-center px-6 py-8">
       <div className="max-w-sm mx-auto w-full">
         <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-spotify-green rounded-full flex items-center justify-center mx-auto mb-6">
-            <Music className="text-2xl text-dark-bg" />
+          <div className="w-20 h-20 bg-dark-surface rounded-full flex items-center justify-center mx-auto mb-6">
+            <Music className="text-dark-text-primary text-4xl" />
           </div>
-          <h1 className="text-3xl font-bold text-dark-text-primary mb-2">x2player</h1>
+          <h1 className="text-3xl font-bold text-center mb-2 text-dark-text-primary">x2player</h1>
           <p className="text-dark-text-secondary">Connect to your Navidrome server</p>
         </div>
 
@@ -92,13 +92,12 @@ export default function Login() {
                 </Label>
                 <Input
                   id="serverUrl"
-                  type="url"
-                  placeholder="https://your-server.com"
+                  type="text"
+                  placeholder="https://navidrome.example.com"
                   value={formData.serverUrl}
-                  onChange={handleInputChange("serverUrl")}
-                  className="bg-dark-surface border-dark-border text-dark-text-primary placeholder-dark-text-secondary focus:border-spotify-green"
+                  onChange={handleInputChange('serverUrl')}
+                  className="bg-dark-surface border-dark-border text-dark-text-primary placeholder-dark-text-secondary focus:border-dark-text-secondary"
                   required
-                  disabled={isLoading}
                 />
               </div>
               
@@ -109,12 +108,11 @@ export default function Login() {
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Enter username"
+                  placeholder="Username"
                   value={formData.username}
-                  onChange={handleInputChange("username")}
-                  className="bg-dark-surface border-dark-border text-dark-text-primary placeholder-dark-text-secondary focus:border-spotify-green"
+                  onChange={handleInputChange('username')}
+                  className="bg-dark-surface border-dark-border text-dark-text-primary placeholder-dark-text-secondary focus:border-dark-text-secondary"
                   required
-                  disabled={isLoading}
                 />
               </div>
               
@@ -125,18 +123,16 @@ export default function Login() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Enter password"
+                  placeholder="Password"
                   value={formData.password}
-                  onChange={handleInputChange("password")}
-                  className="bg-dark-surface border-dark-border text-dark-text-primary placeholder-dark-text-secondary focus:border-spotify-green"
+                  onChange={handleInputChange('password')}
+                  className="bg-dark-surface border-dark-border text-dark-text-primary placeholder-dark-text-secondary focus:border-dark-text-secondary"
                   required
-                  disabled={isLoading}
                 />
               </div>
-              
               <Button
                 type="submit"
-                className="w-full bg-spotify-green text-dark-bg hover:bg-green-600 font-semibold"
+                className="w-full bg-dark-surface text-dark-text-primary hover:bg-dark-elevated font-semibold"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -153,10 +149,13 @@ export default function Login() {
         </Card>
         
         <div className="mt-8 text-center">
-          <p className="text-dark-text-secondary text-sm">Don't have a Navidrome server?</p>
-          <a href="https://www.navidrome.org/" target="_blank" rel="noopener noreferrer" className="text-spotify-green text-sm hover:underline">
-            Learn more
-          </a>
+          <p className="text-center text-dark-text-secondary text-sm">
+            Don't have a server? Learn more about{" "}
+            <a href="https://www.navidrome.org/" target="_blank" rel="noopener noreferrer" className="text-dark-text-secondary text-sm hover:underline">
+              Navidrome
+            </a>
+            .
+          </p>
         </div>
       </div>
     </div>

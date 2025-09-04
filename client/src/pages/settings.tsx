@@ -238,26 +238,6 @@ export default function Settings() {
           </div>
         </div>
       </div>
-
-      <style>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: #1DB954;
-          cursor: pointer;
-        }
-        
-        .slider::-moz-range-thumb {
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: #1DB954;
-          cursor: pointer;
-          border: none;
-        }
-      `}</style>
     </div>
   );
 }

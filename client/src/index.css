@@ -128,7 +128,25 @@
   .text-spotify-green {
     color: var(--spotify-green);
   }
-  
+
+  .slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--spotify-green);
+    cursor: pointer;
+  }
+
+  .slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--spotify-green);
+    cursor: pointer;
+    border: none;
+  }
+
   .placeholder-dark-text-secondary::placeholder {
     color: var(--dark-text-secondary);
   }
