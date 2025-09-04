@@ -1,372 +1,336 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { Plus, Music, Headphones, MoreVertical, Minus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useAuthStore } from "@/stores/authStore";
-import { usePlayerStore } from "@/stores/playerStore";
 import { navidromeService } from "@/services/navidrome";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { Playlist } from "@shared/schema";
-import type { Song } from "@shared/schema"; // Import Song type
+import { usePlayerStore } from "@/stores/playerStore";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuGroup,
-} from "@/components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { MoreVertical, Music, Plus, Trash2, X } from "lucide-react";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "react-beautiful-dnd";
+import { toast } from "@/hooks/use-toast";
+import type { Playlist, Track as Song } from "@shared/schema";
+import { mockPlaylists } from "@/services/mockData";
+import PlaylistFormModal from "@/components/ui/playlist-form-modal";
 
 export default function Playlists() {
-  const { credentials } = useAuthStore();
-  const { playQueue } = usePlayerStore();
-
   const queryClient = useQueryClient();
-
-  const { toast } = useToast();
-
+  const { playQueue } = usePlayerStore();
+  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(
+    null,
+  );
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null); // State to hold the currently selected playlist
-  const [currentPlaylistTracks, setCurrentPlaylistTracks] = useState<Song[]>([]); // State to hold tracks of the selected playlist
 
-  useEffect(() => {
-    if (credentials) {
-      navidromeService.setCredentials(credentials);
-    }
-  }, [credentials]);
-
-  const { data: playlists, isLoading } = useQuery({
-    queryKey: ["/api/playlists"],
-    queryFn: () => navidromeService.getPlaylists(),
-    enabled: !!credentials,
-  });
-  
-  const { data: playlistTracks, isLoading: isLoadingPlaylistTracks, refetch: refetchPlaylistTracks } = useQuery({
-    queryKey: ["/api/playlists", selectedPlaylist?.id, "tracks"],
-    queryFn: () => navidromeService.getPlaylistTracks(selectedPlaylist!.id),
-    enabled: !!selectedPlaylist?.id,
+  const { data: playlists = [], isLoading: isLoadingPlaylists } = useQuery({
+    queryKey: ["playlists"],
+    queryFn: async () => mockPlaylists, // Using mock data
   });
 
-  const handlePlaylistClick = (playlist: Playlist) => {
-    // If the clicked playlist is already selected, deselect it
-    if (selectedPlaylist?.id === playlist.id) {
-      setSelectedPlaylist(null);
-      return;
-    }
-    setSelectedPlaylist(playlist); // Set the selected playlist
-  };
-
-  useEffect(() => {
-    if (playlistTracks) {
-      setCurrentPlaylistTracks(playlistTracks);
-    }
-  }, [playlistTracks]);
-
-  // Placeholder functions for playlist actions - implementation will be in modals
-  const handleCreatePlaylist = () => {
-    setShowCreateModal(true);
-  };
-
-  const handleEditPlaylist = (playlist: Playlist) => {
-    setSelectedPlaylist(playlist);
-    setShowEditModal(true);
-  };
-
-  const handleDeletePlaylist = async (playlist: Playlist) => {
-    try {
-      await navidromeService.deletePlaylist(playlist.id);
-      queryClient.invalidateQueries({ queryKey: ["/api/playlists"] });
-      if (selectedPlaylist?.id === playlist.id) {
-        setSelectedPlaylist(null); // Deselect if the deleted playlist was the one being viewed
-        setCurrentPlaylistTracks([]); // Clear tracks for the deleted playlist
+  const {
+    data: selectedPlaylistTracks = [],
+    isLoading: isLoadingTracks,
+    refetch: refetchTracks,
+  } = useQuery({
+    queryKey: ["playlistTracks", selectedPlaylist?.id],
+    queryFn: () => {
+      if (selectedPlaylist?.id) {
+        return navidromeService.getPlaylistTracks(selectedPlaylist.id);
       }
-    } catch (error) {
-      console.error("Failed to delete playlist:", error);
-    }
-  };
-
-  const removeTrackFromPlaylistMutation = useMutation({
-    mutationFn: ({ playlistId, trackId }: { playlistId: string; trackId: string }) => {
-      if (!playlistId) return Promise.reject("Playlist ID is missing.");
-      return navidromeService.removeTrackFromPlaylist(playlistId, trackId);
+      return Promise.resolve([]);
     },
-    onSuccess: (_, variables) => {
-      toast({
-        title: "Success",
-        description: "Song removed from playlist!",
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/playlists"] }); // Invalidate playlists to update song counts
-      setCurrentPlaylistTracks(currentPlaylistTracks.filter(track => track.id !== variables.trackId)); // Optimistically update the UI
+    enabled: !!selectedPlaylist,
+  });
+
+  const userPlaylists = useMemo(() => playlists, [playlists]);
+
+  const deletePlaylistMutation = useMutation({
+    mutationFn: (id: string) => navidromeService.deletePlaylist(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["playlists"] });
+      setSelectedPlaylist(null);
+      toast({ title: "Playlist deleted successfully" });
     },
     onError: (error) => {
-      console.error("Failed to remove track from playlist:", error);
       toast({
-        title: "Error",
-        description: "Failed to remove song from playlist.",
+        title: "Error deleting playlist",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const removeTrackMutation = useMutation({
+    mutationFn: ({
+      playlistId,
+      trackIndex,
+    }: {
+      playlistId: string;
+      trackIndex: number;
+    }) =>
+      navidromeService.updatePlaylist(
+        playlistId,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        [trackIndex],
+      ),
+    onSuccess: () => {
+      refetchTracks();
+      toast({ title: "Track removed from playlist" });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error removing track",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const reorderTracksMutation = useMutation({
+    mutationFn: ({
+      playlistId,
+      trackIds,
+    }: {
+      playlistId: string;
+      trackIds: string[];
+    }) => navidromeService.reorderPlaylistTracks(playlistId, trackIds),
+    onSuccess: () => {
+      refetchTracks();
+      toast({ title: "Playlist reordered" });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error reordering playlist",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
   const playPlaylistMutation = useMutation({
-    mutationFn: (playlist: Playlist) => {
-      return navidromeService.getPlaylistTracks(playlist.id);
-    },
-    onSuccess: (tracks) => {
-      playQueue.setQueue(tracks);
+    mutationFn: async (playlist: Playlist) => {
+      if (playlist.id) {
+        const tracks = await navidromeService.getPlaylistTracks(playlist.id);
+        playQueue(tracks, 0);
+        return tracks;
+      }
+      return [];
     },
     onError: (error) => {
-      console.error("Failed to play playlist:", error);
+      toast({
+        title: "Error playing playlist",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
-  const updatePlaylistOrderMutation = useMutation({
-    mutationFn: ({ playlistId, trackIds }: { playlistId: string; trackIds: string[] }) => {
-      return navidromeService.updatePlaylist(playlistId, { trackIds }); // Assuming updatePlaylist can handle track order
-    },
-    onSuccess: () => {
-    },
-  });
+  const handleSelectPlaylist = (playlist: Playlist) => {
+    setSelectedPlaylist(playlist);
+  };
 
-  const userPlaylists = playlists?.filter(p => p.owner === credentials?.username) || [];
-  const serverPlaylists = playlists?.filter(p => p.owner !== credentials?.username) || [];
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination || !selectedPlaylist) return;
+
+    const items = Array.from(selectedPlaylistTracks);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    const trackIds = items.map((track) => track.id);
+    reorderTracksMutation.mutate({ playlistId: selectedPlaylist.id, trackIds });
+  };
+
+  const handleMutationSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["playlists"] });
+    if (selectedPlaylist) {
+      queryClient.invalidateQueries({
+        queryKey: ["playlistTracks", selectedPlaylist.id],
+      });
+    }
+    setShowCreateModal(false);
+    setShowEditModal(false);
+  };
 
   return (
-    <div className="min-h-screen bg-dark-bg text-dark-text-primary pb-32">
-      <div className="max-w-sm mx-auto">
-        {/* Header */}
-        <div className="px-4 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold">Your Playlists</h1>
-            <Button
-              size="icon"
-              className="w-10 h-10 bg-spotify-green hover:bg-green-600 rounded-full"
-              onClick={handleCreatePlaylist}
-            >
-              <Plus className="h-5 w-5 text-dark-bg" />
+    <div className="h-full p-4 lg:p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
+        <div className="lg:col-span-1">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold">Playlists</h1>
+            <Button size="sm" onClick={() => setShowCreateModal(true)}>
+              <Plus className="mr-2 h-4 w-4" /> New
             </Button>
           </div>
+          {isLoadingPlaylists ? (
+            <p>Loading playlists...</p>
+          ) : (
+            <ScrollArea className="h-[calc(100vh-220px)]">
+              <div className="space-y-2">
+                {userPlaylists.map((playlist: Playlist) => (
+                  <div
+                    key={playlist.id}
+                    className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${
+                      selectedPlaylist?.id === playlist.id
+                        ? "bg-muted"
+                        : "hover:bg-muted/50"
+                    }`}
+                    onClick={() => handleSelectPlaylist(playlist)}
+                  >
+                    <div className="flex items-center gap-4">
+                      <Music className="h-6 w-6 text-muted-foreground" />
+                      <div>
+                        <p className="font-semibold truncate">{playlist.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {playlist.songCount} tracks
+                        </p>
+                      </div>
+                    </div>
+                    <MoreVertical className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
         </div>
 
-        {isLoading ? (
-          <div className="px-4 space-y-8">
-            {/* User Playlists Skeleton */}
+        <div className="lg:col-span-2">
+          {selectedPlaylist && (
             <div>
-              <Skeleton className="h-6 w-24 bg-dark-border mb-4" />
-              <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="flex items-center space-x-4">
-                    <Skeleton className="w-16 h-16 rounded-lg bg-dark-border" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-32 bg-dark-border" />
-                      <Skeleton className="h-3 w-16 bg-dark-border" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Server Playlists Skeleton */}
-            <div>
-              <Skeleton className="h-6 w-32 bg-dark-border mb-4" />
-              <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="flex items-center space-x-4">
-                    <Skeleton className="w-16 h-16 rounded-lg bg-dark-border" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-32 bg-dark-border" />
-                      <Skeleton className="h-3 w-24 bg-dark-border" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="px-4 space-y-8">
-            {/* Made by You */}
-            {userPlaylists.length > 0 && (
-              <div>
-                <h2 className="text-lg font-semibold mb-4">Made by you</h2>
-                <div className="space-y-4">
-                  {userPlaylists.map((playlist) => (
-                    <div
-                      key={playlist.id}
-                      className="flex items-center justify-between space-x-4 cursor-pointer hover:bg-dark-surface p-2 -m-2 rounded-lg transition-colors"
-                    >
-                      <div
-                        className="flex items-center space-x-4 flex-grow"
-                        onClick={() => handlePlaylistClick(playlist)}
-                     >
-                        {playlist.coverArt ? (
-                          <img src={playlist.coverArt} alt={`${playlist.name} cover`} className="w-16 h-16 rounded-lg object-cover" />
-                        ) : (
-                          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                            <Music className="text-white text-lg" />
-                          </div>
-                        )}
-
-                        <div className="flex-1">
-                          <p className="font-semibold text-dark-text-primary">
-                            {playlist.name}
-                          </p>
-                          <p className="text-dark-text-secondary text-sm">
-                            {playlist.songCount} songs
-                          </p>
-                        </div>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4 text-dark-text-secondary" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuLabel>Playlist Options</DropdownMenuLabel>
-                           <DropdownMenuGroup>
-                             <DropdownMenuItem onClick={() => handleEditPlaylist(playlist)}>Edit</DropdownMenuItem>
-                           </DropdownMenuGroup>
-                            <DropdownMenuSeparator />
-                          {/* <DropdownMenuItem>Add/Remove Songs</DropdownMenuItem> */}
-                          <DropdownMenuItem onClick={() => handleDeletePlaylist(playlist)} className="text-red-500">Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  ))}
+              <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
+                <div>
+                  <h2 className="text-3xl font-bold">{selectedPlaylist.name}</h2>
+                  <p className="text-muted-foreground">
+                    {selectedPlaylist.songCount} songs •{" "}
+                    {selectedPlaylist.owner}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => playPlaylistMutation.mutate(selectedPlaylist)}
+                  >
+                    Play
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowEditModal(true);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={() =>
+                      deletePlaylistMutation.mutate(selectedPlaylist.id)
+                    }
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-            )}
 
-            {/* Server Playlists */}
-            {serverPlaylists.length > 0 && (
-              <div>
-                <h2 className="text-lg font-semibold mb-4">From your library</h2>
-                <div className="space-y-4">
-                  {serverPlaylists.map((playlist, index) => (
-                    <div
-                      key={playlist.id}
-                      className="flex items-center justify-between space-x-4 cursor-pointer hover:bg-dark-surface p-2 -m-2 rounded-lg transition-colors"
-                    >
-                      <div
-                        className="flex items-center space-x-4 flex-grow"
-                        onClick={() => handlePlaylistClick(playlist)}
-                      >
-                         {playlist.coverArt ? (
-                          <img src={playlist.coverArt} alt={`${playlist.name} cover`} className="w-16 h-16 rounded-lg object-cover" />
-                        ) : (
-                          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-500 rounded-lg flex items-center justify-center">
-                            <Headphones className="text-white text-lg" />
-                          </div>
-                        )}
-                        <div className="flex-1">
-                          <p className="font-semibold text-dark-text-primary">
-                            {playlist.name}
-                          </p>
-                          <p className="text-dark-text-secondary text-sm">
-                            {playlist.comment ? `${playlist.comment} • ` : ""}
-                            {playlist.songCount} songs
-                          </p>
-                        </div>
-                      </div>
-                      {/* Add options for server playlists if applicable (likely read-only) */}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-             {/* Selected Playlist Details */}
-             {selectedPlaylist && (
-               <div className="mt-8">
-                 <h2 className="text-xl font-bold mb-4">{selectedPlaylist.name}</h2>
-                 {isLoadingPlaylistTracks ? (
-                   <div className="space-y-4">
-                     {Array.from({ length: 5 }).map((_, i) => (
-                       <div key={i} className="flex items-center space-x-4">
-                         <Skeleton className="h-12 w-12 rounded-md bg-dark-border" />
-                         <div className="flex-1 space-y-1">
-                           <Skeleton className="h-4 w-48 bg-dark-border" />
-                           <Skeleton className="h-3 w-32 bg-dark-border" />
-                         </div>
-                       </div>
-                     ))}
-                   </div>
-                 ) : (
-                  <DragDropContext onDragEnd={(result) => {
-                    if (!result.destination) {
-                      return;
-                    }
-                    const items = Array.from(currentPlaylistTracks);
-                    const [reorderedItem] = items.splice(result.source.index, 1);
-                    items.splice(result.destination.index, 0, reorderedItem);
-
-                    setCurrentPlaylistTracks(items);
-
-                    // Call API to update the order
-                    if (selectedPlaylist) {
-                      updatePlaylistOrderMutation.mutate({
-                        playlistId: selectedPlaylist.id,
-                        trackIds: items.map(item => item.id)
-                      });
-                    }
-                  }}>
-                    <Droppable droppableId="playlist-tracks">
-                      {(provided) => (
-                        <div className="space-y-4" {...provided.droppableProps} ref={provided.innerRef}>
-                          {currentPlaylistTracks?.map((track, index) => (
-                            <Draggable key={track.id} draggableId={track.id} index={index}>
+              {isLoadingTracks ? (
+                <p>Loading tracks...</p>
+              ) : (
+                <DragDropContext onDragEnd={handleDragEnd}>
+                  <Droppable droppableId="tracks">
+                    {(provided) => (
+                      <Table {...provided.droppableProps} ref={provided.innerRef}>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12">#</TableHead>
+                            <TableHead>Title</TableHead>
+                            <TableHead>Artist</TableHead>
+                            <TableHead>Album</TableHead>
+                            <TableHead className="w-12">
+                              <span className="sr-only">Actions</span>
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {selectedPlaylistTracks.map((track, index) => (
+                            <Draggable
+                              key={track.id}
+                              draggableId={track.id}
+                              index={index}
+                            >
                               {(provided) => (
-                                <div
+                                <TableRow
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  className="flex items-center justify-between space-x-4 bg-dark-surface p-2 rounded-md" // Added background for drag visibility
+                                  className="hover:bg-muted/50"
                                 >
-                                  <div className="flex items-center space-x-4">
-                                    <div className="h-12 w-12 bg-dark-surface rounded-md flex items-center justify-center">
-                                      <Music className="h-6 w-6 text-dark-text-secondary" />
-                                    </div>
-                                    <div>
-                                      <p className="font-semibold text-dark-text-primary">{track.title}</p>
-                                      <p className="text-sm text-dark-text-secondary">{track.artist}</p>
-                                    </div>
-                                  </div>
-                                  <Button variant="ghost" size="icon" onClick={() => removeTrackFromPlaylistMutation.mutate({ playlistId: selectedPlaylist.id, trackId: track.id })} className="hover:bg-red-500/20">
-                                    <Minus className="h-4 w-4 text-red-500" />
-                                  </Button>
-                                </div>
+                                  <TableCell className="text-muted-foreground">
+                                    {index + 1}
+                                  </TableCell>
+                                  <TableCell className="font-medium">
+                                    {track.title}
+                                  </TableCell>
+                                  <TableCell>{track.artist}</TableCell>
+                                  <TableCell>{track.album}</TableCell>
+                                  <TableCell>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() =>
+                                        removeTrackMutation.mutate({
+                                          playlistId: selectedPlaylist.id,
+                                          trackIndex: index,
+                                        })
+                                      }
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
                               )}
                             </Draggable>
                           ))}
                           {provided.placeholder}
-                           </div>
-                      )}
-                    </Droppable>
-                  </DragDropContext>
-                 )}
-               </div>
-             )}
-            {/* No Playlists */}
-            {(!playlists || playlists.length === 0) && !isLoading && (
-              <div className="text-center text-dark-text-secondary py-12">
-                <Music className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-semibold mb-2">No playlists found</h3>
-                <p className="text-sm">Create your first playlist or check your Navidrome server</p>
-                <Button
-                  className="mt-4 bg-spotify-green hover:bg-green-600 text-dark-bg"
-                  onClick={handleCreatePlaylist}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Playlist
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+              )}
+            </div>
+          )}
+        </div>
       </div>
+
+      <PlaylistFormModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handleMutationSuccess}
+      />
+
+      {selectedPlaylist && (
+        <PlaylistFormModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={handleMutationSuccess}
+          initialData={{
+            id: selectedPlaylist.id,
+            name: selectedPlaylist.name,
+          }}
+        />
+      )}
     </div>
   );
 }
