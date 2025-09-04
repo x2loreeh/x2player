@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuthStore } from "@/stores/authStore";
 import { usePlayerStore } from "@/stores/playerStore";
+import { useSettingsStore } from "@/stores/settingsStore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +16,7 @@ export default function Settings() {
   const [, setLocation] = useLocation();
   const { credentials, logout } = useAuthStore();
   const { volume, setVolume } = usePlayerStore();
+  const { theme, setTheme } = useSettingsStore();
   const { toast } = useToast();
   const { t, i18n } = useTranslation();
 
@@ -38,6 +40,12 @@ export default function Settings() {
   const handleLanguageChange = (lang: string) => {
     if (lang) {
       i18n.changeLanguage(lang);
+    }
+  };
+
+  const handleThemeChange = (theme: "light" | "dark" | "system") => {
+    if (theme) {
+      setTheme(theme);
     }
   };
 
@@ -177,7 +185,7 @@ export default function Settings() {
                   </div>
                   <ToggleGroup
                     type="single"
-                    defaultValue={i18n.language.split('-')[0]}
+                    defaultValue={i18n.language}
                     onValueChange={handleLanguageChange}
                     className="bg-dark-elevated rounded-full"
                   >
@@ -186,6 +194,37 @@ export default function Settings() {
                     </ToggleGroupItem>
                     <ToggleGroupItem value="it" className="px-4 rounded-full data-[state=on]:bg-white data-[state=on]:text-black">
                       IT
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Theme Settings */}
+          <div>
+            <h2 className="text-lg font-semibold mb-4 text-dark-text-primary">{t('settings.theme')}</h2>
+            <Card className="bg-dark-surface border-dark-border">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-dark-text-primary">{t('settings.theme')}</p>
+                    <p className="text-sm text-dark-text-secondary">{t('settings.themeDescription')}</p>
+                  </div>
+                  <ToggleGroup
+                    type="single"
+                    defaultValue={theme}
+                    onValueChange={handleThemeChange}
+                    className="bg-dark-elevated rounded-full"
+                  >
+                    <ToggleGroupItem value="light" className="px-4 rounded-full data-[state=on]:bg-white data-[state=on]:text-black">
+                      Light
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="dark" className="px-4 rounded-full data-[state=on]:bg-white data-[state=on]:text-black">
+                      Dark
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="system" className="px-4 rounded-full data-[state=on]:bg-white data-[state=on]:text-black">
+                      System
                     </ToggleGroupItem>
                   </ToggleGroup>
                 </div>
