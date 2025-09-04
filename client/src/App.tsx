@@ -55,7 +55,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <main className="max-w-sm mx-auto relative pb-32">
+      <main className="max-w-sm mx-auto relative pb-16">
         <Switch>
           <Route path="/login" component={Login} />
           <Route path="/">
