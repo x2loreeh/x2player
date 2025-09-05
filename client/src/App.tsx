@@ -78,6 +78,11 @@ function AppContent() {
               <Search />
             </ProtectedRoute>
           </Route>
+          <Route path="/playlists/:id">
+            <ProtectedRoute>
+              <Playlists />
+            </ProtectedRoute>
+          </Route>
           <Route path="/playlists">
             <ProtectedRoute>
               <Playlists />
