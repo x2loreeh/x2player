@@ -240,7 +240,7 @@ function PlaylistDetailsPage({ id }: { id: string }) {
             </div>
         </div>
 
-        <div className="p-4 md:p-6">
+        <div className="py-4 md:py-6">
           {isEditModalOpen && (
             <PlaylistFormModal
               isOpen={isEditModalOpen}
