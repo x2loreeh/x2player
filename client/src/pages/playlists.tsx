@@ -4,14 +4,6 @@ import { navidromeService } from "@/services/navidrome";
 import { usePlayerStore } from "@/stores/playerStore";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { MoreVertical, Music, Plus, Trash2, X } from "lucide-react";
 import {
   DragDropContext,
@@ -24,6 +16,19 @@ import type { Playlist, Track as Song } from "@shared/schema";
 import { mockPlaylists } from "@/services/mockData";
 import PlaylistFormModal from "@/components/ui/playlist-form-modal";
 import { useRoute, useLocation } from "wouter";
+
+const mockTracks: Song[] = [
+  { id: 't1', title: 'Sunset Drive', artist: 'Synthwave Rider', album: 'Neon Nights', albumId: 'a1', track: 1, year: 2023, genre: 'Synthwave', duration: 245, path: '#', coverArt: 'https://picsum.photos/seed/t1/200' },
+  { id: 't2', title: 'Ocean Breeze', artist: 'Chillwave Beats', album: 'Summer Grooves', albumId: 'a2', track: 1, year: 2022, genre: 'Chillwave', duration: 198, path: '#', coverArt: 'https://picsum.photos/seed/t2/200' },
+  { id: 't3', title: 'Midnight City', artist: 'M83', album: 'Hurry Up, We\'re Dreaming', albumId: 'a3', track: 1, year: 2011, genre: 'Synthpop', duration: 363, path: '#', coverArt: 'https://picsum.photos/seed/t3/200' },
+  { id: 't4', title: 'Genesis', artist: 'Grimes', album: 'Visions', albumId: 'a4', track: 1, year: 2012, genre: 'Art Pop', duration: 255, path: '#', coverArt: 'https://picsum.photos/seed/t4/200' },
+  { id: 't5', title: 'A Sky Full of Stars', artist: 'Coldplay', album: 'Ghost Stories', albumId: 'a5', track: 8, year: 2014, genre: 'Pop Rock', duration: 268, path: '#', coverArt: 'https://picsum.photos/seed/t5/200' },
+  { id: 't6', title: 'Blinding Lights', artist: 'The Weeknd', album: 'After Hours', albumId: 'a6', track: 9, year: 2020, genre: 'Synth-pop', duration: 200, path: '#', coverArt: 'https://picsum.photos/seed/t6/200' },
+  { id: 't7', title: 'Levitating', artist: 'Dua Lipa', album: 'Future Nostalgia', albumId: 'a7', track: 5, year: 2020, genre: 'Pop', duration: 203, path: '#', coverArt: 'https://picsum.photos/seed/t7/200' },
+  { id: 't8', title: 'Good 4 U', artist: 'Olivia Rodrigo', album: 'SOUR', albumId: 'a8', track: 6, year: 2021, genre: 'Pop Punk', duration: 178, path: '#', coverArt: 'https://picsum.photos/seed/t8/200' },
+  { id: 't9', title: 'Stay', artist: 'The Kid LAROI, Justin Bieber', album: 'F*CK LOVE 3: OVER YOU', albumId: 'a9', track: 1, year: 2021, genre: 'Pop', duration: 141, path: '#', coverArt: 'https://picsum.photos/seed/t9/200' },
+  { id: 't10', title: 'Peaches', artist: 'Justin Bieber', album: 'Justice', albumId: 'a10', track: 6, year: 2021, genre: 'R&B', duration: 198, path: '#', coverArt: 'https://picsum.photos/seed/t10/200' },
+];
 
 function PlaylistsList() {
   const queryClient = useQueryClient();
@@ -121,7 +126,8 @@ function PlaylistPage({ playlistId }: { playlistId: string }) {
     queryKey: ["playlistTracks", playlistId],
     queryFn: () => {
       if (playlistId) {
-        return navidromeService.getPlaylistTracks(playlistId);
+        // return navidromeService.getPlaylistTracks(playlistId);
+        return Promise.resolve(mockTracks);
       }
       return Promise.resolve([]);
     },
@@ -267,63 +273,60 @@ function PlaylistPage({ playlistId }: { playlistId: string }) {
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="tracks">
             {(provided) => (
-              <Table {...provided.droppableProps} ref={provided.innerRef}>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">#</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Artist</TableHead>
-                    <TableHead>Album</TableHead>
-                    <TableHead className="w-12">
-                      <span className="sr-only">Actions</span>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tracks.map((track, index) => (
-                    <Draggable
-                      key={track.id}
-                      draggableId={track.id}
-                      index={index}
-                    >
-                      {(provided) => (
-                        <TableRow
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className="hover:bg-muted/50"
-                          onClick={() => playQueue(tracks, index)}
-                        >
-                          <TableCell className="text-muted-foreground">
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                className="space-y-1"
+              >
+                {tracks.map((track, index) => (
+                  <Draggable
+                    key={track.id}
+                    draggableId={track.id}
+                    index={index}
+                  >
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
+                        onClick={() => playQueue(tracks, index)}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="text-muted-foreground w-6 text-center">
                             {index + 1}
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {track.title}
-                          </TableCell>
-                          <TableCell>{track.artist}</TableCell>
-                          <TableCell>{track.album}</TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeTrackMutation.mutate({
-                                  playlistId: playlist.id,
-                                  trackIndex: index,
-                                });
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </TableBody>
-              </Table>
+                          </div>
+                          <div>
+                            <div className="font-semibold">{track.title}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {track.artist}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-sm text-muted-foreground hidden sm:block">
+                            {track.album}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeTrackMutation.mutate({
+                                playlistId: playlist.id,
+                                trackIndex: index,
+                              });
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
             )}
           </Droppable>
         </DragDropContext>
