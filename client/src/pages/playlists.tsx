@@ -296,6 +296,11 @@ function PlaylistPage({ playlistId }: { playlistId: string }) {
                           <div className="text-muted-foreground w-6 text-center">
                             {index + 1}
                           </div>
+                          <img
+                            src={track.coverArt}
+                            alt={track.title}
+                            className="w-10 h-10 rounded"
+                          />
                           <div>
                             <div className="font-semibold">{track.title}</div>
                             <div className="text-sm text-muted-foreground">
