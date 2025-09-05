@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { navidromeService } from "@/services/navidrome";
+import { toast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -6,120 +9,132 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { navidromeService } from "@/services/navidrome";
-import { useToast } from "@/hooks/use-toast";
 
 interface PlaylistFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  initialData?: { id: string; name: string };
+  initialData?: { id: string; name: string; coverArt?: string | null };
 }
 
-const PlaylistFormModal: React.FC<PlaylistFormModalProps> = ({
+export default function PlaylistFormModal({
   isOpen,
   onClose,
   onSuccess,
   initialData,
-}) => {
-  const [playlistName, setPlaylistName] = useState("");
+}: PlaylistFormModalProps) {
   const [name, setName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  // We'll just store the file object in state for now.
+  const [coverArtFile, setCoverArtFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: ({ id, name }: { id?: string; name: string }) => {
+      if (id) {
+        return navidromeService.updatePlaylist(id, name);
+      }
+      return navidromeService.createPlaylist(name);
+    },
+    onSuccess: () => {
+      toast({
+        title: initialData
+          ? "Playlist updated successfully"
+          : "Playlist created successfully",
+      });
+      onSuccess();
+    },
+    onError: (error) => {
+      toast({
+        title: initialData
+          ? "Error updating playlist"
+          : "Error creating playlist",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   useEffect(() => {
     if (initialData) {
-      setPlaylistName(initialData.name);
+      setName(initialData.name);
+      setPreview(initialData.coverArt || null);
     } else {
-      setPlaylistName("");
+      setName("");
+      setPreview(null);
     }
+    setCoverArtFile(null); // Reset file input on open
   }, [initialData, isOpen]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!playlistName.trim()) {
-      toast({
-        title: "Error",
-        description: "Playlist name cannot be empty.",
-        variant: "destructive",
-      });
-      return;
-    }
-    setIsLoading(true);
-
-    try {
-      if (initialData) {
-        await navidromeService.updatePlaylist(initialData.id, playlistName);
-        toast({ title: "Playlist updated successfully!" });
-      } else {
-        await navidromeService.createPlaylist(playlistName);
-        toast({ title: "Playlist created successfully!" });
-      }
-      onSuccess();
-    } catch (error: any) {
-      console.error("Playlist operation failed:", error);
-      toast({
-        title: "Error",
-        description:
-          error.message ||
-          (initialData
-            ? "Failed to update playlist."
-            : "Failed to create playlist."),
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCoverArtFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // TODO: Implement actual file upload.
+    // For now, we're not passing the image to the mutation.
+    // The mutation would need to be updated to handle file uploads,
+    // which likely requires a new backend endpoint.
+    mutation.mutate({ id: initialData?.id, name });
+  };
+
+  if (!isOpen) return null;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#111111] text-white border-0 rounded-md">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {initialData ? "Edit Playlist" : "Create New Playlist"}
+            {initialData ? "Edit Playlist" : "Create Playlist"}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4">
-          <div className="flex items-center gap-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="bg-black border-0 text-white"
+              required
             />
           </div>
-          
-            
-        
-          <DialogFooter className="flex-row justify-end gap-x-2">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={onClose}
-              className="border-gray-700 bg-transparent text-gray-300 hover:bg-gray-800 hover:text-white"
-            >
+          <div className="space-y-2">
+            <Label htmlFor="cover">Cover Image</Label>
+            {preview && (
+              <img
+                src={preview}
+                alt="Playlist cover preview"
+                className="w-24 h-24 object-cover rounded-md"
+              />
+            )}
+            <Input
+              id="cover"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="bg-black hover:bg-gray-900 text-white"
-            >
-              {isLoading
-                ? "Creating..."
-                : initialData
-                ? "Save changes" : "Create"}
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
-};
-
-export default PlaylistFormModal;
+}

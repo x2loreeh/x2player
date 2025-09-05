@@ -3,6 +3,7 @@ import type {
   Track,
   Playlist,
   Artist,
+  NavidromeCredentials,
 } from "../../../shared/schema";
 
 // Mock album covers - using solid color gradients for demonstration
@@ -58,11 +59,12 @@ export const mockTracks: { [albumId: string]: Track[] } = {
 };
 
 export const mockPlaylists: Playlist[] = [
-  { id: 'p1', name: 'My Favorites', comment: 'Best songs ever', owner: 'user', public: false, songCount: 25, duration: 5400, created: new Date('2024-08-01'), changed: new Date('2024-08-15'), },
-  { id: 'p2', name: 'Chill Vibes', comment: '', owner: 'server', public: true, songCount: 18, duration: 3960, created: new Date('2024-07-15'), changed: new Date('2024-08-10'), },
+  { id: 'p1', name: 'My Favorites', comment: 'Best songs ever', owner: 'user', public: false, songCount: 25, duration: 5400, created: new Date('2024-08-01'), changed: new Date('2024-08-15'), coverArt: 'https://picsum.photos/seed/p1/400' },
+  { id: 'p2', name: 'Chill Vibes', comment: '', owner: 'server', public: true, songCount: 18, duration: 3960, created: new Date('2024-07-15'), changed: new Date('2024-08-10'), coverArt: 'https://picsum.photos/seed/p2/400' },
 ];
 
 export class MockNavidromeService {
+  private credentials: NavidromeCredentials | null = null;
   async ping(): Promise<boolean> {
     return true;
   }

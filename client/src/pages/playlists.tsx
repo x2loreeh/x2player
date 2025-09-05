@@ -4,7 +4,17 @@ import { navidromeService } from "@/services/navidrome";
 import { usePlayerStore } from "@/stores/playerStore";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MoreVertical, Music, Plus, Trash2, X } from "lucide-react";
+import {
+  ArrowLeft,
+  MoreVertical,
+  Music,
+  Pencil,
+  Play,
+  Plus,
+  Shuffle,
+  Trash2,
+  X,
+} from "lucide-react";
 import {
   DragDropContext,
   Droppable,
@@ -202,15 +212,12 @@ function PlaylistPage({ playlistId }: { playlistId: string }) {
   });
 
   const playPlaylistMutation = useMutation({
-    mutationFn: async (playlist: Playlist) => {
-      if (playlist.id) {
-        const tracks = await navidromeService.getPlaylistTracks(playlist.id);
+    mutationFn: async () => {
+      if (tracks.length > 0) {
         playQueue(tracks, 0);
-        return tracks;
       }
-      return [];
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error playing playlist",
         description: error.message,
@@ -218,6 +225,14 @@ function PlaylistPage({ playlistId }: { playlistId: string }) {
       });
     },
   });
+
+  const handleShufflePlay = () => {
+    if (tracks.length > 0) {
+      const shuffledTracks = [...tracks].sort(() => Math.random() - 0.5);
+      playQueue(shuffledTracks, 0);
+      toast({ title: "Shuffling playlist" });
+    }
+  };
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination || !playlist) return;
@@ -243,109 +258,151 @@ function PlaylistPage({ playlistId }: { playlistId: string }) {
   }
 
   return (
-    <div className="px-6 pt-6">
-      <div className="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
-        <div>
-          <h2 className="text-3xl font-bold">{playlist.name}</h2>
-          <p className="text-muted-foreground">
-            {playlist.songCount} songs • {playlist.owner}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={() => playPlaylistMutation.mutate(playlist)}>
-            Play
-          </Button>
-          <Button variant="outline" onClick={() => setShowEditModal(true)}>
-            Edit
-          </Button>
+    <div className="pb-6">
+      <div className="relative">
+        <div className="absolute top-4 left-4 z-10">
           <Button
-            variant="destructive"
-            onClick={() => deletePlaylistMutation.mutate(playlist.id)}
+            variant="ghost"
+            size="icon"
+            className="bg-black/50 hover:bg-black/70"
+            onClick={() => setLocation("/playlists")}
           >
-            <Trash2 className="h-4 w-4" />
+            <ArrowLeft className="h-6 w-6" />
           </Button>
+        </div>
+        <div className="relative w-full h-80">
+          {playlist.coverArt ? (
+            <img
+              src={playlist.coverArt}
+              alt={playlist.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-muted flex items-center justify-center">
+              <Music className="h-24 w-24 text-muted-foreground" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+          <div className="absolute bottom-6 left-6">
+            <h2 className="text-5xl font-bold">{playlist.name}</h2>
+            <p className="text-muted-foreground mt-2">
+              {playlist.songCount} songs • {playlist.owner}
+            </p>
+          </div>
         </div>
       </div>
 
-      {isLoadingTracks ? (
-        <p>Loading tracks...</p>
-      ) : (
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <Droppable droppableId="tracks">
-            {(provided) => (
-              <div
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="space-y-1"
-              >
-                {tracks.map((track, index) => (
-                  <Draggable
-                    key={track.id}
-                    draggableId={track.id}
-                    index={index}
-                  >
-                    {(provided) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
-                        onClick={() => playQueue(tracks, index)}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="text-muted-foreground w-6 text-center">
-                            {index + 1}
-                          </div>
-                          <img
-                            src={track.coverArt}
-                            alt={track.title}
-                            className="w-10 h-10 rounded"
-                          />
-                          <div>
-                            <div className="font-semibold">{track.title}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {track.artist}
+      <div className="px-6 pt-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            size="lg"
+            className="rounded-full w-14 h-14 bg-white hover:bg-gray-200"
+            onClick={() => playPlaylistMutation.mutate()}
+          >
+            <Play className="h-6 w-6 text-black fill-black" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={handleShufflePlay}>
+            <Shuffle className="h-6 w-6 text-muted-foreground" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowEditModal(true)}
+          >
+            <Pencil className="h-5 w-5 text-muted-foreground" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => deletePlaylistMutation.mutate(playlist.id)}
+          >
+            <Trash2 className="h-5 w-5 text-muted-foreground" />
+          </Button>
+        </div>
+
+        {isLoadingTracks ? (
+          <p>Loading tracks...</p>
+        ) : (
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <Droppable droppableId="tracks">
+              {(provided) => (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className="space-y-1"
+                >
+                  {tracks.map((track, index) => (
+                    <Draggable
+                      key={track.id}
+                      draggableId={track.id}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
+                          onClick={() => playQueue(tracks, index)}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="text-muted-foreground w-6 text-center">
+                              {index + 1}
+                            </div>
+                            <img
+                              src={track.coverArt || ""}
+                              alt={track.title}
+                              className="w-10 h-10 rounded"
+                            />
+                            <div>
+                              <div className="font-semibold">{track.title}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {track.artist}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="text-sm text-muted-foreground hidden sm:block">
-                            {track.album}
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm text-muted-foreground hidden sm:block">
+                              {track.album}
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeTrackMutation.mutate({
+                                  playlistId: playlist.id,
+                                  trackIndex: index,
+                                });
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeTrackMutation.mutate({
-                                playlistId: playlist.id,
-                                trackIndex: index,
-                              });
-                            }}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
                         </div>
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-        </DragDropContext>
-      )}
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
+        )}
+      </div>
 
-      <PlaylistFormModal
-        isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
-        onSuccess={handleMutationSuccess}
-        initialData={{
-          id: playlist.id,
-          name: playlist.name,
-        }}
-      />
+      {playlist && (
+        <PlaylistFormModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={handleMutationSuccess}
+          initialData={{
+            id: playlist.id,
+            name: playlist.name,
+            coverArt: playlist.coverArt,
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -47,6 +47,7 @@ export const playlists = pgTable("playlists", {
   duration: integer("duration").default(0),
   created: timestamp("created").defaultNow().notNull(),
   changed: timestamp("changed").defaultNow().notNull(),
+  coverArt: text("cover_art"),
 });
 
 export const playHistory = pgTable("play_history", {
