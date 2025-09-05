@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Shuffle, Music, ChevronLeft, GripVertical } from "lucide-react";
+import { MoreVertical, Shuffle, Music, ChevronLeft, GripVertical, Play } from "lucide-react";
 import {
   usePlaylists,
   usePlaylist,
@@ -148,6 +148,12 @@ function PlaylistDetailsPage({ id }: { id: string }) {
     updatePlaylistMutation({ id, trackIds });
   };
 
+  const handlePlay = () => {
+    if (tracks.length > 0) {
+      playQueue(tracks, 0);
+    }
+  };
+
   const handleShufflePlay = () => {
     if (tracks.length > 0) {
       const shuffledTracks = [...tracks].sort(() => Math.random() - 0.5);
@@ -198,6 +204,14 @@ function PlaylistDetailsPage({ id }: { id: string }) {
             <p className="text-sm text-gray-300 mt-1">
               {tracks.length} tracks, {formatDuration(totalDuration)}
             </p>
+          </div>
+          <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6">
+            <button
+              onClick={handlePlay}
+              className="bg-primary text-primary-foreground rounded-full w-14 h-14 flex items-center justify-center flex-shrink-0 hover:bg-primary/90 transition-colors"
+            >
+              <Play className="h-8 w-8 fill-current ml-1" />
+            </button>
           </div>
           <div className="absolute top-4 right-4 flex gap-2">
               {isOrderChanged && (
@@ -288,11 +302,11 @@ function SortableTrackItem({ track, index, tracks }: { track: Track; index: numb
         )}
       </div>
       <div
-        className="flex-grow cursor-pointer"
+        className="flex-grow cursor-pointer min-w-0"
         onClick={() => playQueue(tracks, index)}
       >
-        <div className="font-semibold">{track.title}</div>
-        <div className="text-sm text-muted-foreground">
+        <div className="font-semibold truncate">{track.title}</div>
+        <div className="text-sm text-muted-foreground truncate">
           {track.artist}
         </div>
       </div>
