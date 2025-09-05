@@ -59,8 +59,30 @@ export const mockTracks: { [albumId: string]: Track[] } = {
 };
 
 export const mockPlaylists: Playlist[] = [
-  { id: 'p1', name: 'My Favorites', comment: 'Best songs ever', owner: 'user', public: false, songCount: 25, duration: 5400, created: new Date('2024-08-01'), changed: new Date('2024-08-15'), coverArt: 'https://picsum.photos/seed/p1/400' },
-  { id: 'p2', name: 'Chill Vibes', comment: '', owner: 'server', public: true, songCount: 18, duration: 3960, created: new Date('2024-07-15'), changed: new Date('2024-08-10'), coverArt: 'https://picsum.photos/seed/p2/400' },
+  { 
+    id: 'p1', 
+    name: 'My Favorites', 
+    comment: 'Best songs ever', 
+    owner: 'user', 
+    public: false, 
+    songCount: 25, 
+    duration: 5400, 
+    created: new Date('2024-08-01'), 
+    changed: new Date('2024-08-15'), 
+    coverArt: mockCovers[0]
+  },
+  { 
+    id: 'p2', 
+    name: 'Chill Vibes', 
+    comment: '', 
+    owner: 'server', 
+    public: true, 
+    songCount: 18, 
+    duration: 3960, 
+    created: new Date('2024-07-15'), 
+    changed: new Date('2024-08-10'), 
+    coverArt: mockCovers[1]
+  },
 ];
 
 export class MockNavidromeService {
@@ -137,9 +159,71 @@ export class MockNavidromeService {
     return Promise.resolve(mockPlaylists);
   }
 
+  async getPlaylist(id: string): Promise<Playlist> {
+    console.log(`Mock: Getting playlist "${id}"`);
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const playlist = this.generateMockPlaylists(1)[0];
+    playlist.id = id;
+    return playlist;
+  }
+
   async getPlaylistTracks(playlistId: string): Promise<Track[]> {
     await new Promise(resolve => setTimeout(resolve, 300));
     return Object.values(mockTracks).flat().slice(0, 5);
+  }
+
+  async createPlaylist(name: string, comment?: string, isPublic?: boolean): Promise<Playlist> {
+    console.log(`Mock: Creating playlist "${name}"`);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const newPlaylist: Playlist = {
+      id: `playlist-${Date.now()}`,
+      name,
+      comment: comment || '',
+      owner: 'mockUser',
+      public: isPublic || false,
+      songCount: 0,
+      duration: 0,
+      created: new Date(),
+      changed: new Date(),
+      coverArt: mockCovers[Math.floor(Math.random() * mockCovers.length)]
+    };
+    return newPlaylist;
+  }
+
+  async updatePlaylist(
+    playlistId: string,
+    name?: string,
+    comment?: string,
+    isPublic?: boolean,
+    imageFile?: File,
+    songIdsToAdd?: string[],
+    songIndexesToRemove?: number[],
+  ): Promise<Playlist> {
+    console.log(`Mock: Updating playlist "${playlistId}"`);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const existingPlaylist = this.generateMockPlaylists(1)[0];
+    const updatedPlaylist: Playlist = {
+      ...existingPlaylist,
+      id: playlistId,
+      name: name || existingPlaylist.name,
+      comment: comment || existingPlaylist.comment,
+      public: isPublic === undefined ? existingPlaylist.public : isPublic,
+      songCount: (existingPlaylist.songCount || 0) - (songIndexesToRemove?.length || 0) + (songIdsToAdd?.length || 0),
+      changed: new Date(),
+    };
+    return updatedPlaylist;
+  }
+
+  async deletePlaylist(id: string): Promise<boolean> {
+    console.log(`Mock: Deleting playlist "${id}"`);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return true;
+  }
+
+  async reorderPlaylistTracks(playlistId: string, trackIds: string[]): Promise<boolean> {
+    console.log(`Mock: Reordering tracks for playlist "${playlistId}"`);
+    await new Promise(resolve => setTimeout(resolve, 200));
+    return true;
   }
 
   getStreamUrl(trackId: string): string {
@@ -155,7 +239,7 @@ export class MockNavidromeService {
       id: `album-${i}`,
       name: `Album ${i + 1}`,
       artist: `Artist ${i + 1}`,
-      coverArt: `https://picsum.photos/seed/${i}/200`,
+      coverArt: mockCovers[i % mockCovers.length],
       year: 2023,
       genre: "Electronic",
       trackCount: 10,
@@ -168,7 +252,7 @@ export class MockNavidromeService {
     return Array.from({ length: count }, (_, i) => ({
       id: `artist-${i}`,
       name: `Artist ${i + 1}`,
-      coverArt: `https://picsum.photos/seed/artist${i}/200`,
+      coverArt: mockCovers[i % mockCovers.length],
       albumCount: Math.floor(Math.random() * 10) + 1,
     }));
   }
@@ -184,6 +268,7 @@ export class MockNavidromeService {
       duration: Math.floor(Math.random() * 10000) + 1200,
       created: new Date(),
       changed: new Date(),
+      coverArt: mockCovers[i % mockCovers.length]
     }));
   }
 
@@ -198,7 +283,7 @@ export class MockNavidromeService {
       track: i + 1,
       year: 2023,
       genre: "Electronic",
-      coverArt: `https://picsum.photos/seed/track${i}/200`,
+      coverArt: mockCovers[i % mockCovers.length],
       path: `mock/path/track-${i}.mp3`,
     }));
   }

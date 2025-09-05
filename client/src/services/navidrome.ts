@@ -283,6 +283,7 @@ class NavidromeService {
         duration: playlist.duration || 0,
         created: new Date(playlist.created || Date.now()),
         changed: new Date(playlist.changed || Date.now()),
+        coverArt: this.getCoverArtUrl(playlist.coverArt),
       })) || [];
     } catch (error) {
       console.error('Failed to fetch playlists:', error);
@@ -352,6 +353,7 @@ class NavidromeService {
         duration: playlist.duration || 0,
         created: new Date(playlist.created || Date.now()),
         changed: new Date(playlist.changed || Date.now()),
+        coverArt: this.getCoverArtUrl(playlist.coverArt),
       };
     } catch (error) {
       console.error(`Failed to fetch playlist ${playlistId}:`, error);
@@ -433,6 +435,7 @@ class NavidromeService {
       duration: playlist.duration || 0,
       created: new Date(playlist.created || Date.now()),
       changed: new Date(playlist.changed || Date.now()),
+      coverArt: this.getCoverArtUrl(playlist.coverArt),
     };
   }
 
@@ -582,4 +585,6 @@ class NavidromeService {
   }
 }
 
-export const navidromeService = new NavidromeService();
+import { MockNavidromeService } from "./mockData";
+
+export const navidromeService = new MockNavidromeService();

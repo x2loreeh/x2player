@@ -1,276 +1,187 @@
-import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { navidromeService } from "@/services/navidrome";
-import { usePlayerStore } from "@/stores/playerStore";
+import { useState, useMemo, useEffect } from "react";
+import { Link, useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  ArrowLeft,
-  MoreVertical,
-  Music,
-  Pencil,
-  Play,
-  Plus,
-  Shuffle,
-  Trash2,
-  X,
-} from "lucide-react";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical, Shuffle, Music, ChevronLeft, GripVertical } from "lucide-react";
 import {
-  DragDropContext,
-  Droppable,
-  Draggable,
-  DropResult,
-} from "react-beautiful-dnd";
-import { toast } from "@/hooks/use-toast";
-import type { Playlist, Track as Song } from "@shared/schema";
-import { mockPlaylists } from "@/services/mockData";
+  usePlaylists,
+  usePlaylist,
+  usePlaylistTracks,
+  useDeletePlaylist,
+} from "@/lib/queries/playlist";
+import { Track, Playlist } from "@/lib/queries/playlist";
+import { usePlayerStore } from "@/stores/playerStore";
+import { formatDuration } from "@/lib/utils";
 import PlaylistFormModal from "@/components/ui/playlist-form-modal";
-import { useRoute, useLocation } from "wouter";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useMutation } from "@tanstack/react-query";
+import { navidromeService } from "@/services/navidrome";
 
-const mockTracks: Song[] = [
-  { id: 't1', title: 'Sunset Drive', artist: 'Synthwave Rider', album: 'Neon Nights', albumId: 'a1', track: 1, year: 2023, genre: 'Synthwave', duration: 245, path: '#', coverArt: 'https://picsum.photos/seed/t1/200' },
-  { id: 't2', title: 'Ocean Breeze', artist: 'Chillwave Beats', album: 'Summer Grooves', albumId: 'a2', track: 1, year: 2022, genre: 'Chillwave', duration: 198, path: '#', coverArt: 'https://picsum.photos/seed/t2/200' },
-  { id: 't3', title: 'Midnight City', artist: 'M83', album: 'Hurry Up, We\'re Dreaming', albumId: 'a3', track: 1, year: 2011, genre: 'Synthpop', duration: 363, path: '#', coverArt: 'https://picsum.photos/seed/t3/200' },
-  { id: 't4', title: 'Genesis', artist: 'Grimes', album: 'Visions', albumId: 'a4', track: 1, year: 2012, genre: 'Art Pop', duration: 255, path: '#', coverArt: 'https://picsum.photos/seed/t4/200' },
-  { id: 't5', title: 'A Sky Full of Stars', artist: 'Coldplay', album: 'Ghost Stories', albumId: 'a5', track: 8, year: 2014, genre: 'Pop Rock', duration: 268, path: '#', coverArt: 'https://picsum.photos/seed/t5/200' },
-  { id: 't6', title: 'Blinding Lights', artist: 'The Weeknd', album: 'After Hours', albumId: 'a6', track: 9, year: 2020, genre: 'Synth-pop', duration: 200, path: '#', coverArt: 'https://picsum.photos/seed/t6/200' },
-  { id: 't7', title: 'Levitating', artist: 'Dua Lipa', album: 'Future Nostalgia', albumId: 'a7', track: 5, year: 2020, genre: 'Pop', duration: 203, path: '#', coverArt: 'https://picsum.photos/seed/t7/200' },
-  { id: 't8', title: 'Good 4 U', artist: 'Olivia Rodrigo', album: 'SOUR', albumId: 'a8', track: 6, year: 2021, genre: 'Pop Punk', duration: 178, path: '#', coverArt: 'https://picsum.photos/seed/t8/200' },
-  { id: 't9', title: 'Stay', artist: 'The Kid LAROI, Justin Bieber', album: 'F*CK LOVE 3: OVER YOU', albumId: 'a9', track: 1, year: 2021, genre: 'Pop', duration: 141, path: '#', coverArt: 'https://picsum.photos/seed/t9/200' },
-  { id: 't10', title: 'Peaches', artist: 'Justin Bieber', album: 'Justice', albumId: 'a10', track: 6, year: 2021, genre: 'R&B', duration: 198, path: '#', coverArt: 'https://picsum.photos/seed/t10/200' },
-];
+function PlaylistsPage() {
+  const { data: playlists, refetch } = usePlaylists();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-function PlaylistsList() {
-  const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
-  const [showCreateModal, setShowCreateModal] = useState(false);
-
-  const { data: playlists = [], isLoading: isLoadingPlaylists } = useQuery({
-    queryKey: ["playlists"],
-    queryFn: async () => mockPlaylists,
-  });
-
-  const handleSelectPlaylist = (playlist: Playlist) => {
-    setLocation(`/playlists/${playlist.id}`);
-  };
-
-  const handleMutationSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ["playlists"] });
-    setShowCreateModal(false);
+  const handleSuccess = () => {
+    refetch();
   };
 
   return (
-    <div className="h-full p-4 lg:p-6">
+    <div className="p-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Playlists</h1>
-        <Button size="sm" onClick={() => setShowCreateModal(true)}>
-          <Plus className="mr-2 h-4 w-4" /> New
-        </Button>
+        <Button onClick={() => setIsModalOpen(true)}>New Playlist</Button>
       </div>
-      {isLoadingPlaylists ? (
-        <p>Loading playlists...</p>
-      ) : (
-        <ScrollArea className="h-[calc(100vh-220px)]">
-          <div className="space-y-2">
-            {playlists.map((playlist: Playlist) => (
-              <div
-                key={playlist.id}
-                className="flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors hover:bg-muted/50"
-                onClick={() => handleSelectPlaylist(playlist)}
-              >
-                <div className="flex items-center gap-4">
-                  <Music className="h-6 w-6 text-muted-foreground" />
-                  <div>
-                    <p className="font-semibold truncate">{playlist.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {playlist.songCount} tracks
-                    </p>
-                  </div>
-                </div>
-                <MoreVertical className="h-5 w-5 text-muted-foreground" />
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
-      )}
+
       <PlaylistFormModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSuccess={handleMutationSuccess}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleSuccess}
       />
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        {playlists?.map((playlist: Playlist) => (
+          <Link key={playlist.id} href={`/playlists/${playlist.id}`}>
+            <div className="cursor-pointer group">
+              <div className="relative aspect-square w-full">
+                {playlist.coverArt ? (
+                  <img
+                    src={playlist.coverArt}
+                    alt={playlist.name}
+                    className="w-full h-full object-cover rounded-md"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-muted rounded-md flex items-center justify-center">
+                    <Music className="h-1/2 w-1/2 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+              <div className="mt-2">
+                <p className="font-semibold truncate">{playlist.name}</p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {playlist.owner}
+                </p>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
 
-export default function Playlists() {
-  const [match, params] = useRoute("/playlists/:id");
-
-  return match ? (
-    <PlaylistPage playlistId={params!.id} />
-  ) : (
-    <PlaylistsList />
-  );
-}
-
-function PlaylistPage({ playlistId }: { playlistId: string }) {
-  const { playQueue } = usePlayerStore();
-  const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
-  const [showEditModal, setShowEditModal] = useState(false);
-
-  const { data: playlists } = useQuery<Playlist[]>({
-    queryKey: ["playlists"],
-    queryFn: async () => mockPlaylists,
-  });
-
-  const playlist = useMemo(() => {
-    if (!playlists) return undefined;
-    return playlists.find((p) => p.id === playlistId);
-  }, [playlistId, playlists]);
-
-  const {
-    data: tracks = [],
-    isLoading: isLoadingTracks,
-    refetch: refetchTracks,
-  } = useQuery({
-    queryKey: ["playlistTracks", playlistId],
-    queryFn: () => {
-      if (playlistId) {
-        // return navidromeService.getPlaylistTracks(playlistId);
-        return Promise.resolve(mockTracks);
-      }
-      return Promise.resolve([]);
-    },
-    enabled: !!playlistId,
-  });
-
-  const deletePlaylistMutation = useMutation({
-    mutationFn: (id: string) => navidromeService.deletePlaylist(id),
+function PlaylistDetailsPage({ id }: { id: string }) {
+  const { data: playlist, refetch: refetchPlaylist } = usePlaylist(id);
+  const { data: tracksData } = usePlaylistTracks(id);
+  const [location, navigate] = useLocation();
+  const { mutate: deletePlaylist } = useDeletePlaylist({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["playlists"] });
-      setLocation("/playlists");
-      toast({ title: "Playlist deleted successfully" });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error deleting playlist",
-        description: error.message,
-        variant: "destructive",
-      });
+      navigate("/playlists");
     },
   });
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { playQueue } = usePlayerStore();
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [isOrderChanged, setIsOrderChanged] = useState(false);
 
-  const removeTrackMutation = useMutation({
-    mutationFn: ({
-      playlistId,
-      trackIndex,
-    }: {
-      playlistId: string;
-      trackIndex: number;
-    }) =>
+  const { mutate: updatePlaylistMutation } = useMutation({
+    mutationFn: (variables: { id: string; trackIds: string[] }) =>
       navidromeService.updatePlaylist(
-        playlistId,
+        variables.id,
         undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        [trackIndex]
+        variables.trackIds.join(",")
       ),
     onSuccess: () => {
-      refetchTracks();
-      toast({ title: "Track removed from playlist" });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error removing track",
-        description: error.message,
-        variant: "destructive",
-      });
+      refetchPlaylist();
+      setIsOrderChanged(false);
     },
   });
 
-  const reorderTracksMutation = useMutation({
-    mutationFn: ({
-      playlistId,
-      trackIds,
-    }: {
-      playlistId: string;
-      trackIds: string[];
-    }) => navidromeService.reorderPlaylistTracks(playlistId, trackIds),
-    onSuccess: () => {
-      refetchTracks();
-      toast({ title: "Playlist reordered" });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error reordering playlist",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  useEffect(() => {
+    if (tracksData) {
+      setTracks(tracksData);
+    }
+  }, [tracksData]);
 
-  const playPlaylistMutation = useMutation({
-    mutationFn: async () => {
-      if (tracks.length > 0) {
-        playQueue(tracks, 0);
-      }
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error playing playlist",
-        description: error.message,
-        variant: "destructive",
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setTracks((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        setIsOrderChanged(true);
+        return arrayMove(items, oldIndex, newIndex);
       });
-    },
-  });
+    }
+  };
+  
+  const handleSaveOrder = () => {
+    const trackIds = tracks.map(t => t.id);
+    updatePlaylistMutation({ id, trackIds });
+  };
 
   const handleShufflePlay = () => {
     if (tracks.length > 0) {
       const shuffledTracks = [...tracks].sort(() => Math.random() - 0.5);
       playQueue(shuffledTracks, 0);
-      toast({ title: "Shuffling playlist" });
     }
   };
 
-  const handleDragEnd = (result: DropResult) => {
-    if (!result.destination || !playlist) return;
+  const totalDuration = useMemo(() => {
+    return tracks.reduce((acc: number, track: Track) => acc + (track.duration ?? 0), 0);
+  }, [tracks]);
 
-    const items = Array.from(tracks);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    const trackIds = items.map((track) => track.id);
-    reorderTracksMutation.mutate({ playlistId: playlist.id, trackIds });
+  const handleDelete = () => {
+    deletePlaylist(id);
   };
 
-  const handleMutationSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ["playlists"] });
-    queryClient.invalidateQueries({
-      queryKey: ["playlistTracks", playlistId],
-    });
-    setShowEditModal(false);
+  const handleEditSuccess = () => {
+    refetchPlaylist();
   };
 
   if (!playlist) {
-    return <div>Loading playlist...</div>;
+    return <div>Loading...</div>;
   }
 
   return (
-    <div className="pb-6">
-      <div className="relative">
-        <div className="absolute top-4 left-4 z-10">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="bg-black/50 hover:bg-black/70"
-            onClick={() => setLocation("/playlists")}
+    <div className="min-h-screen bg-dark-bg text-dark-text-primary pb-32">
+      <div className="max-w-4xl mx-auto">
+        <div className="relative h-48 md:h-64">
+          <button
+            onClick={() => window.history.back()}
+            className="absolute top-4 left-4 bg-black/50 rounded-full p-2 z-10"
           >
-            <ArrowLeft className="h-6 w-6" />
-          </Button>
-        </div>
-        <div className="relative w-full h-80">
+            <ChevronLeft className="h-6 w-6 text-white" />
+          </button>
+          <div className="absolute inset-0 bg-gradient-to-t from-dark-bg to-transparent" />
           {playlist.coverArt ? (
             <img
               src={playlist.coverArt}
@@ -278,131 +189,126 @@ function PlaylistPage({ playlistId }: { playlistId: string }) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center">
-              <Music className="h-24 w-24 text-muted-foreground" />
+            <div className="w-full h-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+              <Music className="h-24 w-24 text-white opacity-60" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-          <div className="absolute bottom-6 left-6">
-            <h2 className="text-5xl font-bold">{playlist.name}</h2>
-            <p className="text-muted-foreground mt-2">
-              {playlist.songCount} songs • {playlist.owner}
+          <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6">
+            <h1 className="text-4xl md:text-5xl font-bold text-white">{playlist.name}</h1>
+            <p className="text-sm text-gray-300 mt-1">
+              {tracks.length} tracks, {formatDuration(totalDuration)}
             </p>
           </div>
-        </div>
-      </div>
-
-      <div className="px-6 pt-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            size="lg"
-            className="rounded-full w-14 h-14 bg-white hover:bg-gray-200"
-            onClick={() => playPlaylistMutation.mutate()}
-          >
-            <Play className="h-6 w-6 text-black fill-black" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={handleShufflePlay}>
-            <Shuffle className="h-6 w-6 text-muted-foreground" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowEditModal(true)}
-          >
-            <Pencil className="h-5 w-5 text-muted-foreground" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => deletePlaylistMutation.mutate(playlist.id)}
-          >
-            <Trash2 className="h-5 w-5 text-muted-foreground" />
-          </Button>
-        </div>
-
-        {isLoadingTracks ? (
-          <p>Loading tracks...</p>
-        ) : (
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="tracks">
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="space-y-1"
-                >
-                  {tracks.map((track, index) => (
-                    <Draggable
-                      key={track.id}
-                      draggableId={track.id}
-                      index={index}
-                    >
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 cursor-pointer"
-                          onClick={() => playQueue(tracks, index)}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="text-muted-foreground w-6 text-center">
-                              {index + 1}
-                            </div>
-                            <img
-                              src={track.coverArt || ""}
-                              alt={track.title}
-                              className="w-10 h-10 rounded"
-                            />
-                            <div>
-                              <div className="font-semibold">{track.title}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {track.artist}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="text-sm text-muted-foreground hidden sm:block">
-                              {track.album}
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removeTrackMutation.mutate({
-                                  playlistId: playlist.id,
-                                  trackIndex: index,
-                                });
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
+          <div className="absolute top-4 right-4 flex gap-2">
+              {isOrderChanged && (
+                <Button onClick={handleSaveOrder} className="bg-primary hover:bg-primary/90">
+                  Save Order
+                </Button>
               )}
-            </Droppable>
-          </DragDropContext>
-        )}
-      </div>
+              <Button onClick={handleShufflePlay} className="bg-black/50 hover:bg-black/70">
+                <Shuffle className="mr-2 h-4 w-4" /> Shuffle
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="bg-black/50 hover:bg-black/70 border-none">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => setIsEditModalOpen(true)}>
+                    Edit Playlist
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDelete}>
+                    Delete Playlist
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+        </div>
 
-      {playlist && (
-        <PlaylistFormModal
-          isOpen={showEditModal}
-          onClose={() => setShowEditModal(false)}
-          onSuccess={handleMutationSuccess}
-          initialData={{
-            id: playlist.id,
-            name: playlist.name,
-            coverArt: playlist.coverArt,
-          }}
-        />
-      )}
+        <div className="p-4 md:p-6">
+          {isEditModalOpen && (
+            <PlaylistFormModal
+              isOpen={isEditModalOpen}
+              onClose={() => setIsEditModalOpen(false)}
+              onSuccess={handleEditSuccess}
+              initialData={playlist}
+            />
+          )}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext items={tracks} strategy={verticalListSortingStrategy}>
+              <div>
+                {tracks.map((track: Track, index: number) => (
+                  <SortableTrackItem key={track.id} track={track} index={index} tracks={tracks} />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        </div>
+      </div>
     </div>
   );
+}
+
+function SortableTrackItem({ track, index, tracks }: { track: Track; index: number; tracks: Track[] }) {
+  const { playQueue } = usePlayerStore();
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: track.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center p-2 hover:bg-accent rounded-md"
+    >
+      <div {...attributes} {...listeners} className="cursor-grab p-2">
+        <GripVertical className="h-5 w-5 text-muted-foreground" />
+      </div>
+      <div className="w-10 h-10 mr-4 flex-shrink-0">
+        {track.coverArt ? (
+          <img src={track.coverArt} alt={track.title} className="w-full h-full object-cover rounded" />
+        ) : (
+          <div className="w-full h-full bg-muted rounded flex items-center justify-center">
+            <Music className="h-5 w-5 text-muted-foreground" />
+          </div>
+        )}
+      </div>
+      <div
+        className="flex-grow cursor-pointer"
+        onClick={() => playQueue(tracks, index)}
+      >
+        <div className="font-semibold">{track.title}</div>
+        <div className="text-sm text-muted-foreground">
+          {track.artist}
+        </div>
+      </div>
+      <div className="text-sm text-muted-foreground">
+        {formatDuration(track.duration ?? 0)}
+      </div>
+    </div>
+  );
+}
+
+export default function Playlists() {
+  const [match, params] = useRoute("/playlists/:id");
+
+  if (match && params?.id) {
+    return <PlaylistDetailsPage id={params.id} />;
+  }
+
+  return <PlaylistsPage />;
 }

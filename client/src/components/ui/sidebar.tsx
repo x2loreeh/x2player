@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { PanelLeft } from "lucide-react"
+import { Music2, PanelLeft } from "lucide-react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -22,6 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { PlaylistCard } from "./playlist-card";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -373,6 +374,80 @@ const SidebarHeader = React.forwardRef<
 })
 SidebarHeader.displayName = "SidebarHeader"
 
+function SidebarPlaylists({
+  playlists,
+  isLoading,
+  onPlaylistClick,
+}: {
+  playlists: any[]
+  isLoading: boolean
+  onPlaylistClick: (playlist: any) => void
+}) {
+  const { state } = useSidebar()
+
+  if (state === "collapsed") {
+    return (
+      <div className="flex flex-col items-center gap-2 px-2">
+        {isLoading &&
+          Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-8 rounded-lg" />
+          ))}
+        {!isLoading &&
+          playlists.map((playlist) => (
+            <Tooltip key={playlist.id}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-8 h-8"
+                  onClick={() => onPlaylistClick(playlist)}
+                >
+                  <Music2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>{playlist.name}</p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex-1 space-y-2 overflow-y-auto px-4">
+      {isLoading &&
+        Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="flex items-center gap-3 rounded-md px-3 py-2">
+            <Skeleton className="h-10 w-10 rounded-md" />
+            <div className="flex-1 space-y-1">
+              <Skeleton className="h-4 w-24 rounded-md" />
+              <Skeleton className="h-3 w-16 rounded-md" />
+            </div>
+          </div>
+        ))}
+      {!isLoading &&
+        playlists.map((playlist) => (
+          <div
+            key={playlist.id}
+            className="flex items-center gap-3 rounded-md px-3 py-2 hover:bg-accent cursor-pointer"
+            onClick={() => onPlaylistClick(playlist)}
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted">
+              <Music2 className="h-5 w-5" />
+            </div>
+            <div className="overflow-hidden">
+              <p className="truncate text-sm font-medium">{playlist.name}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {playlist.owner}
+              </p>
+            </div>
+          </div>
+        ))}
+    </div>
+  )
+}
+
 const SidebarFooter = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
@@ -456,7 +531,6 @@ const SidebarGroupLabel = React.forwardRef<
   )
 })
 SidebarGroupLabel.displayName = "SidebarGroupLabel"
-
 const SidebarGroupAction = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<"button"> & { asChild?: boolean }
@@ -630,7 +704,6 @@ const SidebarMenuAction = React.forwardRef<
   )
 })
 SidebarMenuAction.displayName = "SidebarMenuAction"
-
 const SidebarMenuBadge = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">

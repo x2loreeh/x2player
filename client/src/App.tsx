@@ -7,7 +7,7 @@ import { BottomNavigation } from "@/components/ui/bottom-navigation";
 import { MiniPlayer } from "@/components/ui/mini-player";
 import { useAuthStore } from "./stores/authStore";
 import { useEffect } from "react";
-import { navidromeService } from "./services/navidrome";
+import { MockNavidromeService } from "./services/mockData";
 import { useSettingsStore } from "./stores/settingsStore";
 
 import Login from "@/pages/login";
@@ -18,6 +18,8 @@ import Playlists from "@/pages/playlists";
 import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import ArtistPage from "@/pages/artist";
+
+const navidromeService = new MockNavidromeService();
 
 // Componente per la gestione delle route protette
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
