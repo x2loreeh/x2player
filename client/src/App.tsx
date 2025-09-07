@@ -9,6 +9,8 @@ import { useAuthStore } from "./stores/authStore";
 import { useEffect } from "react";
 import { MockNavidromeService } from "./services/mockData";
 import { useSettingsStore } from "./stores/settingsStore";
+// Rimuovo l'importazione della Sidebar che non serve più
+// import { Sidebar } from "@/components/ui/sidebar"; 
 
 import Login from "@/pages/login";
 import Home from "@/pages/home";
@@ -53,11 +55,22 @@ function AppContent() {
     root.classList.add(effectiveTheme);
   }, [theme]);
 
+  // Se siamo sulla pagina di login, non mostrare il layout principale
+  if (location === "/login") {
+    return (
+      <Switch>
+        <Route path="/login" component={Login} />
+        <Route>
+          <Redirect to="/login" />
+        </Route>
+      </Switch>
+    );
+  }
+
   return (
-    <div className="min-h-screen">
-      <main className="max-w-sm mx-auto relative pb-16">
+    <div className="max-w-sm mx-auto flex flex-col min-h-screen">
+      <main className="flex-1 p-4">
         <Switch>
-          <Route path="/login" component={Login} />
           <Route path="/">
             <ProtectedRoute>
               <Home />
@@ -96,7 +109,6 @@ function AppContent() {
           <Route component={NotFound} />
         </Switch>
       </main>
-
       <MiniPlayer />
       <BottomNavigation />
     </div>
