@@ -73,14 +73,15 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-48">
-      <div className="max-w-2xl mx-auto p-4 md:p-6">
-        <header className="mb-8">
+      <div className="max-w-sm mx-auto">
+        {/* Header */}
+        <div className="px-4 py-6">
           <h1 className="text-3xl font-bold tracking-tight">
             {t("settings.title")}
           </h1>
-        </header>
+        </div>
 
-        <section id="user-profile" className="mb-8">
+        <section id="user-profile" className="mb-4 px-4">
           <Card>
             <CardHeader>
               <div className="flex items-center space-x-4">
@@ -106,12 +107,12 @@ export default function SettingsPage() {
           </Card>
         </section>
 
-        <section id="playback" className="mb-8">
+        <section id="playback" className="mb-8 px-4">
           <h2 className="text-lg font-semibold mb-4 text-foreground">
             {t("settings.playback")}
           </h2>
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 ">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-foreground">
@@ -165,7 +166,7 @@ export default function SettingsPage() {
           </Card>
         </section>
 
-        <section id="audio-quality" className="mb-8">
+        <section id="audio-quality" className="mb-8 px-4">
           <h2 className="text-lg font-semibold mb-4 text-foreground">
             {t("settings.audioQuality")}
           </h2>
@@ -238,7 +239,7 @@ export default function SettingsPage() {
           </Card>
         </section>
 
-        <section id="language" className="mb-8">
+        <section id="language" className="mb-8 px-4">
           <h2 className="text-lg font-semibold mb-4 text-foreground">
             {t("settings.language")}
           </h2>
@@ -267,7 +268,7 @@ export default function SettingsPage() {
           </Card>
         </section>
 
-        <section id="theme" className="mb-8">
+        <section id="theme" className="mb-8 px-4">
           <h2 className="text-lg font-semibold mb-4 text-foreground">
             {t("settings.theme")}
           </h2>
@@ -304,7 +305,7 @@ export default function SettingsPage() {
           </Card>
         </section>
 
-        <section id="server">
+        <section id="server" className="mb-8 px-4">
           <h2 className="text-lg font-semibold mb-4 text-foreground">
             {t("settings.server")}
           </h2>

@@ -103,11 +103,10 @@
 
 @layer utilities {
   .slider::-webkit-slider-thumb {
-    appearance: none;
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: var(--spotify-green);
+    background: hsl(var(--primary));
     cursor: pointer;
   }
 
@@ -115,7 +114,7 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: var(--spotify-green);
+    background: hsl(var(--primary));
     cursor: pointer;
     border: none;
   }
@@ -182,4 +181,28 @@
 /* Album card hover effects */
 .album-card:hover {
   transform: scale(1.02);
+}
+
+.slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+.slider::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+.slider::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  cursor: pointer;
 }
