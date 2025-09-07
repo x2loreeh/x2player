@@ -197,37 +197,45 @@ export class MockNavidromeService {
     isPublic?: boolean,
     imageFile?: File,
     songIdsToAdd?: string[],
-    songIndexesToRemove?: number[],
+    songIndexesToRemove?: number[]
   ): Promise<Playlist> {
-    console.log(`Mock: Updating playlist "${playlistId}"`);
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const existingPlaylist = this.generateMockPlaylists(1)[0];
-    const updatedPlaylist: Playlist = {
-      ...existingPlaylist,
-      id: playlistId,
-      name: name || existingPlaylist.name,
-      comment: comment || existingPlaylist.comment,
-      public: isPublic === undefined ? existingPlaylist.public : isPublic,
-      songCount: (existingPlaylist.songCount || 0) - (songIndexesToRemove?.length || 0) + (songIdsToAdd?.length || 0),
-      changed: new Date(),
-    };
-    return updatedPlaylist;
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const playlist = mockPlaylists.find((p: Playlist) => p.id === playlistId);
+        if (playlist) {
+          if (name) playlist.name = name;
+          if (comment) playlist.comment = comment;
+          if (isPublic !== undefined) playlist.public = isPublic;
+          if (songIdsToAdd) {
+            // In a real scenario, you'd add tracks here.
+          }
+          if (songIndexesToRemove) {
+            // In a real scenario, you'd remove tracks here.
+          }
+          resolve(playlist);
+        } else {
+          reject(new Error("Playlist not found"));
+        }
+      }, 500);
+    });
   }
 
-  async deletePlaylist(id: string): Promise<boolean> {
-    console.log(`Mock: Deleting playlist "${id}"`);
-    await new Promise(resolve => setTimeout(resolve, 200));
-    return true;
-  }
-
-  async reorderPlaylistTracks(playlistId: string, trackIds: string[]): Promise<boolean> {
-    console.log(`Mock: Reordering tracks for playlist "${playlistId}"`);
-    await new Promise(resolve => setTimeout(resolve, 200));
-    return true;
+  scanLibrary(): Promise<boolean> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        console.log("Library scan started...");
+        setTimeout(() => {
+          console.log("Library scan finished.");
+          resolve(true);
+        }, 5000);
+      }, 500);
+    });
   }
 
   getStreamUrl(trackId: string): string {
-    return '#';
+    const allTracks = Object.values(mockTracks).flat();
+    const track = allTracks.find((t: Track) => t.id === trackId);
+    return track ? track.path : '#';
   }
 
   setCredentials(credentials: any) {

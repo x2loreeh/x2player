@@ -1,16 +1,15 @@
+import enTranslations from "@/locales/en/translation.json";
+import itTranslations from "@/locales/it/translation.json";
+
 export const translations = {
-  it: {
-    "No track selected": "Nessuna traccia selezionata",
-    "Select a song to play": "Seleziona un brano da riprodurre",
-  },
-  en: {
-    "No track selected": "No track selected",
-    "Select a song to play": "Select a song to play",
-  },
+  en: enTranslations,
+  it: itTranslations,
 };
 
 export type Language = keyof typeof translations;
 
-export const getTranslator = (lang: Language) => (key: keyof typeof translations.en) => {
-  return translations[lang][key] || translations.en[key];
-};
+export const getTranslator =
+  (lang: Language) =>
+  (key: keyof typeof translations.en): string => {
+    return (translations[lang] as any)[key] || translations.en[key];
+  };

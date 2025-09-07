@@ -43,20 +43,18 @@ function AppContent() {
     const root = window.document.documentElement;
     root.classList.remove("light", "dark");
 
+    let effectiveTheme = theme;
     if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
+      effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
         : "light";
-      root.classList.add(systemTheme);
-      return;
     }
 
-    root.classList.add(theme);
+    root.classList.add(effectiveTheme);
   }, [theme]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen">
       <main className="max-w-sm mx-auto relative pb-16">
         <Switch>
           <Route path="/login" component={Login} />

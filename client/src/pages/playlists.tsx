@@ -90,7 +90,7 @@ function PlaylistsPage() {
   );
 }
 
-function PlaylistDetailsPage({ id }: { id: string }) {
+export function PlaylistDetailsPage({ id }: { id: string }) {
   const { data: playlist, refetch: refetchPlaylist } = usePlaylist(id);
   const { data: tracksData } = usePlaylistTracks(id);
   const [location, navigate] = useLocation();
@@ -178,7 +178,7 @@ function PlaylistDetailsPage({ id }: { id: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-dark-bg text-dark-text-primary pb-32">
+    <div className="min-h-screen bg-background text-foreground pb-32">
       <div className="max-w-4xl mx-auto">
         <div className="relative h-48 md:h-64">
           <button
@@ -187,7 +187,7 @@ function PlaylistDetailsPage({ id }: { id: string }) {
           >
             <ChevronLeft className="h-6 w-6 text-white" />
           </button>
-          <div className="absolute inset-0 bg-gradient-to-t from-dark-bg to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
           {playlist.coverArt ? (
             <img
               src={playlist.coverArt}
