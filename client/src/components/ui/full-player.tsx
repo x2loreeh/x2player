@@ -83,27 +83,15 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-dark-bg z-[100] flex flex-col overflow-hidden"
+          className="fixed inset-0 z-[100] flex flex-col overflow-hidden"
+          style={{ backgroundColor: "hsl(var(--card))" }}
           variants={playerVariants}
           initial="hidden"
           animate="visible"
           exit="exit"
           transition={{ duration: 0.3, ease: "easeInOut" }}
         >
-          {/* Background with blurred cover */}
-          {currentTrack?.coverArt && (
-            <div
-              className="absolute inset-0 bg-cover bg-center filter blur-2xl scale-110"
-              style={{
-                backgroundImage: currentTrack.coverArt
-                  ? `url(${currentTrack.coverArt})`
-                  : undefined,
-              }}
-            />
-          )}
-          <div className="absolute inset-0 bg-black/50" />
-
-          <div className="relative z-10 flex-1 flex flex-col p-4 text-white">
+          <div className="relative z-10 flex-1 flex flex-col p-4 text-card-foreground">
             {/* Header */}
             <div className="flex justify-between items-center">
               <button onClick={() => setIsOpen(false)} className="p-2">
@@ -145,11 +133,14 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
                     isPlaying && currentTrack?.title && currentTrack.title.length > 20
                       ? "animate-marquee-bidirectional inline-block"
                       : "truncate block"
-                  )}>
+                  )}
+                  >
                     {currentTrack.title}
                   </h2>
                 </div>
-                <p className="text-lg text-gray-400 truncate">{currentTrack.artist}</p>
+                <p className="text-lg text-muted-foreground truncate">
+                  {currentTrack.artist}
+                </p>
               </div>
               <button onClick={handleLike} className="p-2 flex-shrink-0">
                 <Heart

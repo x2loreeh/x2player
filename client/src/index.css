@@ -30,26 +30,26 @@
   }
 
   html.dark {
-    --background: 0 0% 3.9%; /* quasi nero */
-    --foreground: 0 0% 98%; /* bianco */
-    --card: 0 0% 15%; /* Grigio scuro, più chiaro dello sfondo */
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 0 0% 22%; /* Grigio più chiaro per contrasto */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 0%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 0% 80%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 22%;
     --muted-foreground: 215 20.2% 65.1%;
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 25%; /* Bordo più chiaro */
+    --border: 0 0% 25%;
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.1%;
-    --switch-track-unchecked: 215 20% 30%; /* Grigio per switch 'off' in tema scuro */
+    --switch-track-unchecked: 215 20% 30%;
   }
 
   * {
@@ -86,20 +86,11 @@
 
 /* Liquid glass utility classes */
 @layer components {
-  .liquid-glass {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  }
-  
+  .liquid-glass,
   .liquid-glass-strong {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.25);
   }
 }
 
@@ -185,40 +176,7 @@
   transform: scale(1.02);
 }
 
-.slider::-webkit-slider-runnable-track {
-  width: 100%;
-  height: 8px;
-  cursor: pointer;
-  background: hsl(var(--muted));
-  border-radius: 4px;
-}
-
-.slider::-moz-range-track {
-  width: 100%;
-  height: 8px;
-  cursor: pointer;
-  background: hsl(var(--muted));
-  border-radius: 4px;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: hsl(var(--primary));
-  cursor: pointer;
-  border-radius: 50%;
-}
-
-.slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  background: hsl(var(--primary));
-  cursor: pointer;
-  border-radius: 50%;
-}
+/* Rimuovo le regole per lo slider che non sono più necessarie */
 
 html.dark .card,
 html.dark .card-header,
@@ -290,4 +248,90 @@ button[role="switch"][data-state="checked"] > span {
   from {
     height: 0;
   }
+}
+
+/* Stili per lo slider */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: hsl(var(--secondary));
+  border-radius: 4px;
+}
+
+.slider::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: hsl(var(--secondary));
+  border-radius: 4px;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: hsl(var(--primary));
+  border: 2px solid hsl(var(--primary));
+  border-radius: 50%;
+  cursor: pointer;
+  margin-top: -4px; /* Per centrare il pallino sulla barra */
+}
+
+.slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: hsl(var(--primary));
+  border: 2px solid hsl(var(--primary));
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Stile per la parte riempita dello slider */
+.slider::-webkit-slider-container {
+  background: linear-gradient(
+    to right,
+    hsl(var(--primary)) var(--range-progress, 0%),
+    hsl(var(--secondary)) var(--range-progress, 0%)
+  );
+  border-radius: 4px;
+}
+
+.slider::-moz-range-progress {
+  background: hsl(var(--primary));
+  height: 8px;
+  border-radius: 4px;
+}
+
+/* Hover e focus states */
+.slider:hover::-webkit-slider-thumb {
+  background: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+
+.slider:hover::-moz-range-thumb {
+  background: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+
+.slider:focus {
+  outline: none;
+}
+
+.slider:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary));
+}
+
+.slider:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary));
 }
