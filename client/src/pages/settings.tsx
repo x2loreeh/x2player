@@ -82,12 +82,12 @@ export default function SettingsPage() {
         </div>
 
         <section id="user-profile" className="mb-4 px-4">
-          <Card>
+          <Card className="bg-card border">
             <CardHeader>
               <div className="flex items-center space-x-4">
-                <Avatar>
+                <Avatar className="h-16 w-16">
                   <AvatarImage src="" />
-                  <AvatarFallback>
+                  <AvatarFallback className="bg-muted text-muted-foreground text-2xl">
                     {user?.username?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -95,7 +95,7 @@ export default function SettingsPage() {
                   <h3 className="font-bold text-lg text-foreground">
                     {user?.username}
                   </h3>
-                  <p className="text-muted-foreground text-sm"></p>
+                  <p className="text-sm text-muted-foreground"></p>
                 </div>
               </div>
             </CardHeader>

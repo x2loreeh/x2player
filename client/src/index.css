@@ -26,28 +26,30 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+    --switch-track-unchecked: 214.3 30% 85%; /* Grigio per switch 'off' in tema chiaro */
   }
 
   html.dark {
-    --background: 0 0% 3.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --background: 0 0% 3.9%; /* quasi nero */
+    --foreground: 0 0% 98%; /* bianco */
+    --card: 0 0% 15%; /* Grigio scuro, più chiaro dello sfondo */
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
+    --muted: 0 0% 22%; /* Grigio più chiaro per contrasto */
     --muted-foreground: 215 20.2% 65.1%;
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 25%; /* Bordo più chiaro */
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --switch-track-unchecked: 215 20% 30%; /* Grigio per switch 'off' in tema scuro */
   }
 
   * {
@@ -200,9 +202,92 @@
 }
 
 .slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
   width: 20px;
   height: 20px;
   border-radius: 50%;
   background: hsl(var(--primary));
   cursor: pointer;
+  border-radius: 50%;
+}
+
+.slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: hsl(var(--primary));
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+html.dark .card,
+html.dark .card-header,
+html.dark .card-footer,
+html.dark .card-content {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border-color: hsl(var(--border));
+}
+
+html.dark .button-outline {
+  background-color: transparent;
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+html.dark .button-outline:hover {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+html.dark .avatar-fallback {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+
+/* Stili completi per il componente Switch */
+button[role="switch"] {
+  display: inline-flex;
+  height: 24px;
+  width: 44px;
+  flex-shrink: 0;
+  cursor: pointer;
+  align-items: center;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  transition: background-color 0.2s ease-in-out;
+}
+
+button[role="switch"][data-state="unchecked"] {
+  background-color: hsl(var(--switch-track-unchecked));
+}
+
+button[role="switch"][data-state="checked"] {
+  background-color: hsl(var(--primary));
+}
+
+/* Stili per il pallino (thumb) */
+button[role="switch"] > span {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background-color: hsl(var(--background)); /* Usa il colore di sfondo della pagina */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+  transform: translateX(2px); /* Posizione iniziale (spento) */
+}
+
+/* Stili per il pallino quando lo switch è acceso */
+button[role="switch"][data-state="checked"] > span {
+  background-color: hsl(var(--primary-foreground));
+  transform: translateX(22px); /* Posizione finale (acceso) */
+}
+
+/* Rimosse le regole CSS errate da qui */
+
+@keyframes slide-down {
+  from {
+    height: 0;
+  }
 }
