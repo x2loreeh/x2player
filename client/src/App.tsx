@@ -69,7 +69,7 @@ function AppContent() {
 
   return (
     <div className="max-w-sm mx-auto flex flex-col min-h-screen">
-      <main className="flex-1 p-4">
+      <main className="flex-1">
         <Switch>
           <Route path="/">
             <ProtectedRoute>
