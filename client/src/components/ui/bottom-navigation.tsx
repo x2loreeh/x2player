@@ -15,7 +15,7 @@ export function BottomNavigation() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-black border-t p-2 flex justify-around">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-black border-t p-2 flex justify-around">
       {navigation.map((item) => (
         <Link
           key={item.name}
