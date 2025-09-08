@@ -1,18 +1,15 @@
-import { Switch, Route, Redirect, useLocation } from "wouter";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "./lib/queryClient";
+import { Switch, Route, useLocation } from "wouter";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
+
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { BottomNavigation } from "@/components/ui/bottom-navigation";
-import { MiniPlayer } from "@/components/ui/mini-player";
-import { useAuthStore } from "./stores/authStore";
-import { useEffect } from "react";
-import { MockNavidromeService } from "./services/mockData";
-import { useSettingsStore } from "./stores/settingsStore";
-// Rimuovo l'importazione della Sidebar che non serve più
-// import { Sidebar } from "@/components/ui/sidebar"; 
+import { cn } from "@/lib/utils";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
-import Login from "@/pages/login";
+import { useSettingsStore } from "@/stores/settingsStore";
+import { usePlayerStore } from "@/stores/playerStore";
+
 import Home from "@/pages/home";
 import Album from "@/pages/album";
 import Search from "@/pages/search";
@@ -20,26 +17,18 @@ import Playlists from "@/pages/playlists";
 import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import ArtistPage from "@/pages/artist";
+import { MiniPlayer } from "@/components/ui/mini-player";
+import { BottomNavigation } from "@/components/ui/bottom-navigation";
 
-const navidromeService = new MockNavidromeService();
-
-// Componente per la gestione delle route protette
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  // const { credentials } = useAuthStore();
-  // return credentials ? <>{children}</> : <Redirect to="/login" />;
-  return <>{children}</>;
-}
+const queryClient = new QueryClient();
 
 function AppContent() {
   const [location] = useLocation();
-  const { credentials } = useAuthStore();
   const { theme } = useSettingsStore();
+  const { currentTrack } = usePlayerStore();
 
-  useEffect(() => {
-    if (credentials) {
-      navidromeService.setCredentials(credentials);
-    }
-  }, [credentials]);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const showPlayer = !!currentTrack;
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -55,61 +44,21 @@ function AppContent() {
     root.classList.add(effectiveTheme);
   }, [theme]);
 
-  // Se siamo sulla pagina di login, non mostrare il layout principale
-  if (location === "/login") {
-    return (
-      <Switch>
-        <Route path="/login" component={Login} />
-        <Route>
-          <Redirect to="/login" />
-        </Route>
-      </Switch>
-    );
-  }
-
   return (
-    <div className="max-w-sm mx-auto flex flex-col min-h-screen">
-      <main className="flex-1">
-        <Switch>
-          <Route path="/">
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          </Route>
-          <Route path="/album/:id">
-            <ProtectedRoute>
-              <Album />
-            </ProtectedRoute>
-          </Route>
-          <Route path="/artist/:id">
-            <ProtectedRoute>
-              <ArtistPage />
-            </ProtectedRoute>
-          </Route>
-          <Route path="/search">
-            <ProtectedRoute>
-              <Search />
-            </ProtectedRoute>
-          </Route>
-          <Route path="/playlists/:id">
-            <ProtectedRoute>
-              <Playlists />
-            </ProtectedRoute>
-          </Route>
-          <Route path="/playlists">
-            <ProtectedRoute>
-              <Playlists />
-            </ProtectedRoute>
-          </Route>
-          <Route path="/settings">
-            <ProtectedRoute>
-              <Settings />
-            </ProtectedRoute>
-          </Route>
+    <div className="relative min-h-screen">
+      <main className={cn("pb-24", { "pt-16": isDesktop, "pb-40": showPlayer })}>
+        <Switch location={location}>
+          <Route path="/" component={Home} />
+          <Route path="/album/:id" component={Album} />
+          <Route path="/artist/:id" component={ArtistPage} />
+          <Route path="/search" component={Search} />
+          <Route path="/playlists/:id" component={Playlists} />
+          <Route path="/playlists" component={Playlists} />
+          <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>
       </main>
-      <MiniPlayer />
+      {showPlayer && <MiniPlayer />}
       <BottomNavigation />
     </div>
   );
