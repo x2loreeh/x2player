@@ -67,18 +67,18 @@ export default function Search() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-bg text-dark-text-primary pb-32">
+    <div className="min-h-screen bg-background text-foreground pb-32">
       <div className="max-w-sm mx-auto">
         {/* Search Header */}
         <div className="px-4 py-6">
           <div className="relative">
-            <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-text-secondary h-4 w-4" />
+            <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               type="text"
               placeholder="Artists, songs, or albums"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 pr-4 py-3 bg-dark-surface border-dark-border text-dark-text-primary placeholder-dark-text-secondary focus:border-spotify-green"
+              className="pl-12 pr-4 py-3 bg-card border-border text-foreground placeholder-muted-foreground focus:border-primary"
             />
           </div>
         </div>
@@ -90,13 +90,13 @@ export default function Search() {
               <div className="space-y-6">
                 {/* Album Results Skeleton */}
                 <div>
-                  <Skeleton className="h-6 w-16 bg-dark-border mb-4" />
+                  <Skeleton className="h-6 w-16 bg-muted mb-4" />
                   <div className="grid grid-cols-2 gap-4">
                     {Array.from({ length: 4 }).map((_, i) => (
                       <div key={i}>
-                        <Skeleton className="w-full h-40 rounded-xl bg-dark-border mb-3" />
-                        <Skeleton className="h-4 w-24 bg-dark-border mb-1" />
-                        <Skeleton className="h-3 w-16 bg-dark-border" />
+                        <Skeleton className="w-full h-40 rounded-xl bg-muted mb-3" />
+                        <Skeleton className="h-4 w-24 bg-muted mb-1" />
+                        <Skeleton className="h-3 w-16 bg-muted" />
                       </div>
                     ))}
                   </div>
@@ -104,14 +104,14 @@ export default function Search() {
                 
                 {/* Track Results Skeleton */}
                 <div>
-                  <Skeleton className="h-6 w-12 bg-dark-border mb-4" />
+                  <Skeleton className="h-6 w-12 bg-muted mb-4" />
                   <div className="space-y-3">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <div key={i} className="flex items-center space-x-3">
-                        <Skeleton className="w-12 h-12 rounded bg-dark-border" />
+                        <Skeleton className="w-12 h-12 rounded bg-muted" />
                         <div className="flex-1 space-y-2">
-                          <Skeleton className="h-4 w-32 bg-dark-border" />
-                          <Skeleton className="h-3 w-24 bg-dark-border" />
+                          <Skeleton className="h-4 w-32 bg-muted" />
+                          <Skeleton className="h-3 w-24 bg-muted" />
                         </div>
                       </div>
                     ))}
@@ -146,7 +146,7 @@ export default function Search() {
                       {searchResults.tracks.slice(0, 10).map((track) => (
                         <div
                           key={track.id}
-                          className="flex items-center space-x-3 p-2 rounded-lg hover:bg-dark-surface transition-colors cursor-pointer"
+                          className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
                           onClick={() => handleTrackClick(track)}
                         >
                           {track.coverArt && (
@@ -157,14 +157,14 @@ export default function Search() {
                             />
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate text-dark-text-primary">
+                            <p className="font-medium text-sm truncate text-foreground">
                               {track.title}
                             </p>
-                            <p className="text-dark-text-secondary text-xs truncate">
+                            <p className="text-muted-foreground text-xs truncate">
                               {track.artist} • {track.album}
                             </p>
                           </div>
-                          <div className="flex items-center text-dark-text-secondary text-xs">
+                          <div className="flex items-center text-muted-foreground text-xs">
                             <Clock className="h-3 w-3 mr-1" />
                             {formatDuration(track.duration || 0)}
                           </div>
@@ -177,7 +177,7 @@ export default function Search() {
                 {/* No Results */}
                 {(!searchResults.albums || searchResults.albums.length === 0) &&
                  (!searchResults.tracks || searchResults.tracks.length === 0) && (
-                  <div className="text-center text-dark-text-secondary py-8">
+                  <div className="text-center text-muted-foreground py-8">
                     <Music className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No results found for "{debouncedQuery}"</p>
                   </div>
