@@ -1,5 +1,9 @@
 {
-    "settings.title": "Settings",
+  "welcome.title": "Welcome to x2player",
+  "welcome.subtitle": "How do you want to listen to your music?",
+  "welcome.navidromeButton": "Use a Navidrome server",
+  "welcome.localFilesButton": "Use local files",
+  "settings.title": "Settings",
     "settings.playback": "Playback",
     "settings.crossfade": "Crossfade",
     "settings.crossfadeDescription": "Smoothly transition between songs.",

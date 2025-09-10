@@ -21,8 +21,8 @@ type SettingsState = {
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
-      theme: "system",
-      language: "it",
+      theme: "dark",
+      language: "en",
       streamingQuality: "high",
       downloadQuality: "high",
       volume: 1,

@@ -1,6 +1,7 @@
 import { Switch, Route, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
+import i18n from "@/i18n"; // Import i18n
 
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -32,19 +33,7 @@ function AppContent() {
   const isDesktop = useMediaQuery("(min-width: 768px)");
   const showPlayer = !!currentTrack;
 
-  useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-
-    let effectiveTheme = theme;
-    if (theme === "system") {
-      effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    }
-
-    root.classList.add(effectiveTheme);
-  }, [theme]);
+  // RIMOSSO useEffect per il tema da qui
 
   return (
     <div className="relative min-h-screen">
@@ -68,6 +57,25 @@ function AppContent() {
 
 function App() {
   const { isFirstLaunch } = useConfigStore();
+  const { theme, language } = useSettingsStore(); // Prendo tema e lingua dallo store
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+
+    let effectiveTheme = theme;
+    if (theme === "system") {
+      effectiveTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    }
+    root.classList.add(effectiveTheme);
+  }, [theme]);
+
+  useEffect(() => {
+    i18n.changeLanguage(language);
+  }, [language]);
+
 
   if (isFirstLaunch) {
     return <Welcome />;
