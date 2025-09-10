@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 type SettingsState = {
+  dataSource: "navidrome" | "local";
   theme: "light" | "dark" | "system";
   language: string;
   streamingQuality: string;
@@ -9,6 +10,7 @@ type SettingsState = {
   volume: number;
   crossfade: number;
   normalizeVolume: boolean;
+  setDataSource: (dataSource: "navidrome" | "local") => void;
   setTheme: (theme: "light" | "dark" | "system") => void;
   setLanguage: (language: string) => void;
   setStreamingQuality: (quality: string) => void;
@@ -21,6 +23,7 @@ type SettingsState = {
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
+      dataSource: "navidrome",
       theme: "dark",
       language: "en",
       streamingQuality: "high",
@@ -28,6 +31,7 @@ export const useSettingsStore = create<SettingsState>()(
       volume: 1,
       crossfade: 0,
       normalizeVolume: false,
+      setDataSource: (dataSource) => set({ dataSource }),
       setTheme: (theme) => set({ theme }),
       setLanguage: (language) => set({ language }),
       setStreamingQuality: (quality) => set({ streamingQuality: quality }),

@@ -30,6 +30,7 @@ interface PlayerState {
   updateProgress: (progress: number, duration: number) => void;
   toggleLike: (trackId: string) => void;
   addToQueue: (track: Track) => void;
+  clearQueue: () => void;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -183,5 +184,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     set((state) => ({
       queue: [...state.queue, track],
     }));
+  },
+
+  clearQueue: () => {
+    set({
+      queue: [],
+      currentTrack: null,
+      currentIndex: 0,
+      isPlaying: false,
+    });
   },
 }));
