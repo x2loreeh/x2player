@@ -1,130 +1,142 @@
-import { useEffect, useState } from "react";
-import { Filesystem, Directory, FileInfo } from "@capacitor/filesystem";
+import React, { useState, useRef } from "react";
+import { useLocation } from "wouter";
 import { usePlayerStore } from "@/stores/playerStore";
-import { Track } from "@/lib/queries/playlist";
+import type { Track } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2 } from "lucide-react";
+import jsmediatags from "jsmediatags";
 
-// A simplified function to parse track metadata from filename
-const parseTrack = (fileName: string): Partial<Track> => {
-  const cleanedName = fileName.replace(/\.(mp3|flac|wav|m4a)$/i, "");
-  const parts = cleanedName.split(" - ");
-  if (parts.length >= 2) {
-    return { artist: parts[0], title: parts[1] };
-  }
-  return { title: cleanedName, artist: "Unknown Artist" };
+// Funzione per leggere i metadati di un file audio
+const readTrackMetadata = (file: File): Promise<Track> => {
+  return new Promise((resolve, reject) => {
+    jsmediatags.read(file, {
+      onSuccess: (tag) => {
+        const tags = tag.tags;
+        let coverUrl = "default-cover";
+
+        if (tags.picture) {
+          const { data, format } = tags.picture;
+          const base64String = data.reduce((acc, byte) => acc + String.fromCharCode(byte), "");
+          coverUrl = `data:${format};base64,${window.btoa(base64String)}`;
+        }
+
+        const audio = new Audio();
+        audio.src = URL.createObjectURL(file);
+        audio.addEventListener("loadedmetadata", () => {
+            URL.revokeObjectURL(audio.src); // Pulisce l'URL dell'oggetto
+            const trackData: Track = {
+                id: `local-${file.name}-${Math.random()}`,
+                title: tags.title || file.name.replace(/\.[^/.]+$/, ""),
+                artist: tags.artist || "Unknown Artist",
+                album: tags.album || "Unknown Album",
+                year: tags.year ? parseInt(tags.year, 10) : null,
+                genre: tags.genre || null,
+                track: tags.track ? parseInt(tags.track.split('/')[0], 10) : null,
+                coverArt: coverUrl,
+                duration: audio.duration,
+                path: audio.src, // Usiamo l'object URL per la riproduzione
+                albumId: `local-album-${tags.artist}-${tags.album}`,
+            };
+            resolve(trackData);
+        });
+        audio.addEventListener("error", (e) => {
+            URL.revokeObjectURL(audio.src);
+            reject(new Error("Error loading audio metadata"));
+        });
+      },
+      onError: (error) => {
+        console.error("Could not read metadata for file:", file.name, error);
+        // Risolve con metadati di base se la lettura fallisce
+        const audio = new Audio();
+        audio.src = URL.createObjectURL(file);
+        audio.addEventListener("loadedmetadata", () => {
+            URL.revokeObjectURL(audio.src);
+            resolve({
+                id: `local-${file.name}-${Math.random()}`,
+                title: file.name.replace(/\.[^/.]+$/, ""),
+                artist: "Unknown Artist",
+                album: "Unknown Album",
+                year: null,
+                genre: null,
+                track: null,
+                coverArt: "default-cover",
+                duration: audio.duration,
+                path: audio.src,
+                albumId: `local-album-unknown`,
+            });
+        });
+         audio.addEventListener("error", (e) => {
+            URL.revokeObjectURL(audio.src);
+            reject(new Error("Error loading audio metadata"));
+        });
+      },
+    });
+  });
 };
 
+
 export function LocalFiles() {
-  const [audioFiles, setAudioFiles] = useState<Track[]>([]);
-  const [permissionStatus, setPermissionStatus] = useState<"prompt" | "granted" | "denied">("prompt");
-  const { playTrack } = usePlayerStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const { playQueue } = usePlayerStore();
+  const [, setLocation] = useLocation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const requestPermissions = async () => {
+  const handleFolderSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsLoading(true);
+
+    const audioFiles = Array.from(files).filter((file) =>
+      /\.(mp3|flac|wav|m4a|ogg)$/i.test(file.name)
+    );
+
     try {
-      // This is a simplified permission request.
-      // For a real app, you might need @capacitor/android-permissions
-      const result = await Filesystem.requestPermissions();
-      if (result.publicStorage === "granted") {
-        setPermissionStatus("granted");
-        loadAudioFiles();
+      const tracks = await Promise.all(audioFiles.map(readTrackMetadata));
+      if (tracks.length > 0) {
+        playQueue(tracks);
+        setLocation("/"); // Naviga alla home page dopo aver caricato i brani
       } else {
-        setPermissionStatus("denied");
+        alert("No compatible audio files found in the selected directory.");
       }
-    } catch (e) {
-      console.error("Error requesting permissions", e);
-      setPermissionStatus("denied");
+    } catch (error) {
+      console.error("Error processing files:", error);
+      alert("An error occurred while processing the audio files.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const loadAudioFiles = async () => {
-    try {
-      // Directory.Music is not available in the current Capacitor version.
-      // Using Directory.Documents as a cross-platform fallback.
-      // For Android, you might want to use Directory.ExternalStorage with path: "Music".
-      const result = await Filesystem.readdir({
-        path: "", // An empty path means the directory root.
-        directory: Directory.Documents,
-      });
-
-      const files = result.files.filter((file: FileInfo) =>
-        /\.(mp3|flac|wav|m4a)$/i.test(file.name)
-      );
-
-      const tracks: Track[] = files.map((file: FileInfo, index: number) => {
-        const metadata = parseTrack(file.name);
-        return {
-          id: `local-${index}`,
-          title: metadata.title || "Unknown Title",
-          album: "Local Files",
-          artist: metadata.artist || "Unknown Artist",
-          coverArt: "default-cover", // Placeholder cover
-          duration: 0, // Duration would require a more complex library to read
-          path: file.uri,
-          // Add missing nullable properties to match the Track type
-          year: null,
-          genre: null,
-          albumId: null,
-          track: null,
-        };
-      });
-
-      setAudioFiles(tracks);
-    } catch (e) {
-      console.error("Unable to read music directory", e);
-      // Fallback for web or if Music directory is not available
-      alert("Could not read music directory. Please ensure you've granted permissions.");
-    }
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
   };
-
-  useEffect(() => {
-    if (permissionStatus === "granted") {
-      loadAudioFiles();
-    }
-  }, [permissionStatus]);
-
-  if (permissionStatus === "prompt") {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h2 className="text-2xl mb-4">Access Local Files</h2>
-        <p className="mb-4 text-center">We need your permission to access music files on your device.</p>
-        <Button onClick={requestPermissions}>Grant Permission</Button>
-      </div>
-    );
-  }
-
-  if (permissionStatus === "denied") {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h2 className="text-2xl mb-4">Permission Denied</h2>
-        <p className="text-center">You've denied permission to access local files. Please enable it in your device settings.</p>
-      </div>
-    );
-  }
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Local Music</h1>
-      <ScrollArea className="h-[calc(100vh-150px)]">
-        {audioFiles.length > 0 ? (
-          <ul>
-            {audioFiles.map((track) => (
-              <li
-                key={track.id}
-                className="flex items-center justify-between p-2 rounded-md hover:bg-muted"
-                onClick={() => playTrack(track)}
-              >
-                <div>
-                  <div className="font-semibold">{track.title}</div>
-                  <div className="text-sm text-muted-foreground">{track.artist}</div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No audio files found in your Music directory.</p>
-        )}
-      </ScrollArea>
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
+      {isLoading ? (
+        <>
+          <Loader2 className="w-12 h-12 animate-spin mb-4" />
+          <h2 className="text-2xl">Loading your music...</h2>
+          <p>This may take a moment.</p>
+        </>
+      ) : (
+        <>
+          <h2 className="text-2xl mb-4">Access Local Files</h2>
+          <p className="mb-8">
+            Select your music folder to start listening.
+          </p>
+          <Button onClick={handleButtonClick}>Select Music Folder</Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFolderSelect}
+            className="hidden"
+            webkitdirectory=""
+            directory=""
+            multiple
+          />
+        </>
+      )}
     </div>
   );
 }

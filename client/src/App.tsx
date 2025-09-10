@@ -19,10 +19,10 @@ import Playlists from "@/pages/playlists";
 import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 import ArtistPage from "@/pages/artist";
+import { LocalFiles } from "@/pages/LocalFiles";
 import { MiniPlayer } from "@/components/ui/mini-player";
 import { BottomNavigation } from "@/components/ui/bottom-navigation";
 import { Welcome } from "@/pages/Welcome";
-import { LocalFiles } from "@/pages/LocalFiles"; // Import the new page
 
 const queryClient = new QueryClient();
 
@@ -89,6 +89,9 @@ function RouterComponent({ isFirstLaunch }: { isFirstLaunch: boolean }) {
           <Route path="/playlists/:id" component={Playlists} />
           <Route path="/playlists" component={Playlists} />
           <Route path="/settings" component={Settings} />
+          <Route path="/artist/:id" component={ArtistPage} />
+          <Route path="/local-files" component={LocalFiles} />
+          {/* 404 Not Found */}
           <Route component={NotFound} />
         </Switch>
       </main>

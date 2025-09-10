@@ -2,18 +2,21 @@ import { Button } from "@/components/ui/button";
 import { useConfigStore } from "@/stores/configStore";
 import { useTranslation } from "react-i18next";
 import { Server, Folder } from "lucide-react";
+import { useLocation } from "wouter";
 
 export function Welcome() {
   const { setDataSource } = useConfigStore();
   const { t } = useTranslation();
+  const [, setLocation] = useLocation();
 
   const handleNavidrome = () => {
     setDataSource("navidrome");
+    setLocation("/login");
   };
 
   const handleLocalFiles = () => {
-    // This is currently disabled, but the handler is here for when it's enabled.
     setDataSource("local");
+    setLocation("/local-files");
   };
 
   return (
