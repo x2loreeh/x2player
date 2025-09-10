@@ -5,7 +5,6 @@ import enTranslation from "./locales/en/translation.json";
 import itTranslation from "./locales/it/translation.json";
 
 i18n
-  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources: {
@@ -16,13 +15,10 @@ i18n
         translation: itTranslation,
       },
     },
+    lng: "en",
     fallbackLng: "en",
     interpolation: {
       escapeValue: false,
-    },
-    detection: {
-      order: ['localStorage', 'cookie'],
-      caches: ['localStorage', 'cookie'],
     },
   });
 

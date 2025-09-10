@@ -1,26 +1,52 @@
-import { useConfigStore } from '@/stores/configStore';
-import { Button } from '@/components/ui/button';
-import { useTranslation } from '@/hooks/useTranslation';
+import { Button } from "@/components/ui/button";
+import { useConfigStore } from "@/stores/configStore";
+import { useTranslation } from "react-i18next";
+import { Server, Folder } from "lucide-react";
 
 export function Welcome() {
   const { setDataSource } = useConfigStore();
-  const t = useTranslation();
+  const { t } = useTranslation();
+
+  const handleNavidrome = () => {
+    setDataSource("navidrome");
+  };
+
+  const handleLocalFiles = () => {
+    // This is currently disabled, but the handler is here for when it's enabled.
+    setDataSource("local");
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">{t('welcome.title')}</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4 text-center">
+      <div className="max-w-md w-full">
+        <h1 className="text-4xl font-bold mb-2 text-foreground">
+          {t("welcome.title")}
+        </h1>
         <p className="text-lg text-muted-foreground mb-8">
-          {t('welcome.subtitle')}
+          {t("welcome.subtitle")}
         </p>
-      </div>
-      <div className="flex gap-4">
-        <Button onClick={() => setDataSource('navidrome')}>
-          {t('welcome.navidromeButton')}
-        </Button>
-        <Button onClick={() => setDataSource('local')} disabled>
-          {t('welcome.localFilesButton')}
-        </Button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Button
+            onClick={handleNavidrome}
+            className="h-auto p-6 text-lg"
+            variant="outline"
+          >
+            <div className="flex flex-col items-center gap-2">
+              <Server size={128} className="mb-2" />
+              <span>{t("welcome.navidromeButton")}</span>
+            </div>
+          </Button>
+          <Button
+            onClick={handleLocalFiles}
+            className="h-auto p-6 text-lg"
+            variant="outline"
+          >
+            <div className="flex flex-col items-center gap-2">
+              <Folder size={128} className="mb-2" />
+              <span>{t("welcome.localFilesButton")}</span>
+            </div>
+          </Button>
+        </div>
       </div>
     </div>
   );
