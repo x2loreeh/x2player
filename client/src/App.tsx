@@ -9,6 +9,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 
 import { useSettingsStore } from "@/stores/settingsStore";
 import { usePlayerStore } from "@/stores/playerStore";
+import { useConfigStore } from "@/stores/configStore";
 
 import Home from "@/pages/home";
 import Album from "@/pages/album";
@@ -19,6 +20,7 @@ import NotFound from "@/pages/not-found";
 import ArtistPage from "@/pages/artist";
 import { MiniPlayer } from "@/components/ui/mini-player";
 import { BottomNavigation } from "@/components/ui/bottom-navigation";
+import { Welcome } from "@/pages/Welcome";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +67,12 @@ function AppContent() {
 }
 
 function App() {
+  const { isFirstLaunch } = useConfigStore();
+
+  if (isFirstLaunch) {
+    return <Welcome />;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
