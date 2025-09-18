@@ -1,590 +1,749 @@
 import axios, { AxiosInstance } from "axios";
-import { md5 } from "js-md5";
-import type {
-  NavidromeCredentials,
-  SubsonicResponse,
-  Album,
-  Track,
-  Playlist,
-  Artist,
-} from "../../../shared/schema";
+import md5 from "md5";
+import { Album, Artist, Song } from "../types/types";
 
-type ArtistInfo = {
-  biography?: string;
-};
+export class NavidromeService {
+  private api!: AxiosInstance;
+  private username!: string;
+  private token!: string;
+  private salt!: string;
 
-declare module "../../../shared/schema" {
-  interface Artist {
-    artistInfo?: ArtistInfo;
-  }
-}
-
-class NavidromeService {
-  api: AxiosInstance;
-  credentials: NavidromeCredentials | null = null;
-
-  constructor() {
-    this.api = axios.create();
-  }
-
-  setCredentials(credentials: NavidromeCredentials) {
-    this.credentials = credentials;
+  setCredentials(credentials: {
+    serverUrl: string;
+    username: string;
+    password?: string;
+    token?: string;
+    salt?: string;
+  }) {
     this.api = axios.create({
       baseURL: `${credentials.serverUrl}/rest`,
-      timeout: 10000,
     });
-  }
+    this.username = credentials.username;
 
-  private generateAuthParams() {
-    if (!this.credentials) {
-      throw new Error('No credentials set');
+    if (credentials.password) {
+      const salt = Math.random().toString(36).substring(2, 12);
+      const token = md5(credentials.password + salt);
+      this.token = token;
+      this.salt = salt;
+    } else if (credentials.token && credentials.salt) {
+      this.token = credentials.token;
+      this.salt = credentials.salt;
     }
-
-    const salt = Math.random().toString(36).substring(2, 15);
-    const token = md5(this.credentials.password + salt);
-
-    return {
-      u: this.credentials.username,
-      t: token,
-      s: salt,
-      v: '1.16.1',
-      c: 'x2player',
-      f: 'json',
-    };
   }
 
   async ping(): Promise<boolean> {
     try {
-      const response = await this.api.get('/ping', {
-        params: this.generateAuthParams(),
+      await this.api.get("ping.view", {
+        params: {
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+        },
       });
-      
-      const data: SubsonicResponse = response.data;
-      return data['subsonic-response'].status === 'ok';
+      return true;
     } catch (error) {
-      console.error('Ping failed:', error);
       return false;
     }
   }
 
-  async getAlbums(type: 'newest' | 'recent' | 'frequent' | 'random' = 'newest', size = 20, offset = 0): Promise<Album[]> {
+  async login() {
     try {
-      const response = await this.api.get('/getAlbumList2', {
+      const response = await this.api.get("ping.view", {
         params: {
-          ...this.generateAuthParams(),
-          type,
-          size,
-          offset,
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
         },
       });
-
-      const data: SubsonicResponse<{ albumList2: { album: any[] } }> = response.data;
-      
-      if (data['subsonic-response'].status === 'failed') {
-        throw new Error(data['subsonic-response'].error?.message || 'Failed to fetch albums');
+      if (response.data["subsonic-response"].status === "ok") {
+        return {
+          token: this.token,
+          salt: this.salt,
+          username: this.username,
+        };
+      } else {
+        throw new Error("Login failed");
       }
-
-      return (
-        data["subsonic-response"].albumList2?.album?.map((album: any) => ({
-          id: album.id,
-          name: album.name,
-          artist: album.artist,
-          coverArt: this.getCoverArtUrl(album.coverArt),
-          year: album.year,
-          genre: album.genre,
-          trackCount: album.songCount || 0,
-          duration: album.duration || 0,
-          createdAt: new Date(album.created || Date.now()),
-        })) || []
-      );
     } catch (error) {
-      console.error("Failed to fetch albums:", error);
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async checkAuth() {
+    try {
+      const response = await this.api.get("ping.view", {
+        params: { u: this.username, t: this.token, s: this.salt, v: "1.16.1", c: "x2player" },
+      });
+      if (response.data["subsonic-response"].status === "ok") {
+        return response.data["subsonic-response"];
+      } else {
+        throw new Error("Login failed");
+      }
+    } catch (error) {
+      console.error(error);
       throw error;
     }
   }
 
   async getArtists(
-    type: 'random' = 'random',
-    size = 10,
-    offset = 0
+    musicFolderId?: string
   ): Promise<Artist[]> {
     try {
-      const response = await this.api.get('/getArtists', {
+      const response = await this.api.get("getArtists.view", {
         params: {
-          ...this.generateAuthParams(),
-          type,
-          size,
-          offset,
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+          musicFolderId,
         },
       });
-
-      const data: SubsonicResponse<{ artists: { artist: any[] } }> =
-        response.data;
-
-      if (data['subsonic-response'].status === 'failed') {
-        throw new Error(
-          data['subsonic-response'].error?.message || 'Failed to fetch artists'
-        );
-      }
-
-      return (
-        data['subsonic-response'].artists?.artist?.map((artist: any) => ({
-          id: artist.id,
-          name: artist.name,
-          coverArt: this.getCoverArtUrl(artist.coverArt),
-          albumCount: artist.albumCount || 0,
-        })) || []
-      );
+      const artists =
+        response.data["subsonic-response"].artists.index
+          .flatMap((index: any) => index.artist)
+          .map((artist: any) => ({
+            id: artist.id,
+            name: artist.name,
+            coverArt: artist.coverArt,
+            albumCount: artist.albumCount,
+          }));
+      return artists;
     } catch (error) {
-      console.error('Failed to fetch artists:', error);
-      throw error;
-    }
-  }
-
-  async searchMusic(
-    query: string
-  ): Promise<{ albums: Album[]; tracks: Track[]; artists: any[] }> {
-    try {
-      const response = await this.api.get('/search3', {
-        params: {
-          ...this.generateAuthParams(),
-          query,
-          albumCount: 20,
-          songCount: 20,
-          artistCount: 20,
-        },
-      });
-
-      const data: SubsonicResponse<{ searchResult3: any }> = response.data;
-      
-      if (data['subsonic-response'].status === 'failed') {
-        throw new Error(data['subsonic-response'].error?.message || 'Search failed');
-      }
-
-      const result = data['subsonic-response'].searchResult3 || {};
-      
-      return {
-        albums: result.album?.map((album: any) => ({
-          id: album.id,
-          name: album.name,
-          artist: album.artist,
-          coverArt: this.getCoverArtUrl(album.coverArt),
-          year: album.year,
-          genre: album.genre,
-          trackCount: album.songCount || 0,
-          duration: album.duration || 0,
-          createdAt: new Date(album.created || Date.now()),
-        })) || [],
-        tracks: result.song?.map((song: any) => ({
-          id: song.id,
-          title: song.title,
-          artist: song.artist,
-          album: song.album,
-          albumId: song.albumId,
-          duration: song.duration || 0,
-          track: song.track,
-          year: song.year,
-          genre: song.genre,
-          coverArt: this.getCoverArtUrl(song.coverArt),
-          path: `${this.credentials?.serverUrl}/rest/stream?id=${song.id}&${new URLSearchParams(this.generateAuthParams()).toString()}`,
-        })) || [],
-        artists: result.artist || [],
-      };
-    } catch (error) {
-      console.error('Search failed:', error);
-      throw error;
-    }
-  }
-
-  async getArtist(id: string): Promise<Artist> {
-    try {
-      const response = await this.api.get('/getArtist', {
-        params: {
-          ...this.generateAuthParams(),
-          id,
-        },
-      });
-
-      const data: SubsonicResponse<{ artist: any }> = response.data;
-
-      if (data['subsonic-response'].status === 'failed') {
-        throw new Error(
-          data['subsonic-response'].error?.message || 'Failed to fetch artist'
-        );
-      }
-
-      const artist = data['subsonic-response'].artist;
-
-      return {
-        id: artist.id,
-        name: artist.name,
-        coverArt: this.getCoverArtUrl(artist.coverArt),
-        albumCount: artist.albumCount,
-        artistInfo: artist.artistInfo,
-      };
-    } catch (error) {
-      console.error(`Failed to fetch artist ${id}:`, error);
+      console.error(error);
       throw error;
     }
   }
 
   async getArtistAlbums(id: string): Promise<Album[]> {
     try {
-        const response = await this.api.get('/getArtist', {
-            params: {
-                ...this.generateAuthParams(),
-                id,
-            },
-        });
-
-        const data: SubsonicResponse<{ artist: { album: any[] } }> = response.data;
-
-        if (data['subsonic-response'].status === 'failed') {
-            throw new Error(data['subsonic-response'].error?.message || 'Failed to fetch artist albums');
-        }
-
-        const artistData = data['subsonic-response'].artist;
-        return artistData.album.map((album: any) => ({
-            id: album.id,
-            name: album.name,
-            artist: album.artist,
-            coverArt: this.getCoverArtUrl(album.coverArt),
-            year: album.year,
-            genre: album.genre,
-            trackCount: album.songCount || 0,
-            duration: album.duration || 0,
-            createdAt: new Date(album.created || Date.now()),
-        }));
-    } catch (error) {
-        console.error(`Failed to fetch artist albums for artist ${id}:`, error);
-        throw error;
-    }
-  }
-
-  async getPlaylists(): Promise<Playlist[]> {
-    try {
-      const response = await this.api.get('/getPlaylists', {
-        params: this.generateAuthParams(),
+      const response = await this.api.get("getArtist.view", {
+        params: {
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+          id,
+        },
       });
-
-      const data: SubsonicResponse<{ playlists: { playlist: any[] } }> = response.data;
-      
-      if (data['subsonic-response'].status === 'failed') {
-        throw new Error(data['subsonic-response'].error?.message || 'Failed to fetch playlists');
-      }
-
-      return data['subsonic-response'].playlists?.playlist?.map(playlist => ({
-        id: playlist.id,
-        name: playlist.name,
-        comment: playlist.comment,
-        owner: playlist.owner,
-        public: playlist.public || false,
-        songCount: playlist.songCount || 0,
-        duration: playlist.duration || 0,
-        created: new Date(playlist.created || Date.now()),
-        changed: new Date(playlist.changed || Date.now()),
-        coverArt: this.getCoverArtUrl(playlist.coverArt),
-      })) || [];
+      const artistData = response.data["subsonic-response"].artist;
+      const albums = artistData.album.map((album: any) => ({
+        id: album.id,
+        name: album.name,
+        artist: album.artist,
+        artistId: album.artistId,
+        coverArt: album.coverArt,
+        trackCount: album.songCount,
+        duration: album.duration,
+        createdAt: new Date(album.created),
+        year: album.year,
+        genre: album.genre,
+      }));
+      return albums;
     } catch (error) {
-      console.error('Failed to fetch playlists:', error);
+      console.error(error);
       throw error;
     }
   }
 
-  async getPlaylistTracks(playlistId: string): Promise<Track[]> {
+  async getArtist(id: string): Promise<Artist> {
     try {
-      const response = await this.api.get('/getPlaylist', {
+      const response = await this.api.get("getArtist.view", {
         params: {
-          ...this.generateAuthParams(),
-          id: playlistId,
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+          id,
         },
       });
+      const artistData = response.data["subsonic-response"].artist;
+      const albums = artistData.album.map((album: any) => ({
+        id: album.id,
+        name: album.name,
+        artist: album.artist,
+        artistId: album.artistId,
+        coverArt: album.coverArt,
+        trackCount: album.songCount,
+        duration: album.duration,
+        createdAt: new Date(album.created),
+        year: album.year,
+        genre: album.genre,
+      }));
+      return {
+        id: artistData.id,
+        name: artistData.name,
+        coverArt: artistData.coverArt,
+        albumCount: artistData.albumCount,
+        artistInfo: {
+          biography: artistData.artistInfo?.biography,
+        },
+        albums,
+      };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 
-      const data: SubsonicResponse<{ playlist: { entry: any[] } }> = response.data;
-      
-      if (data['subsonic-response'].status === 'failed') {
-        throw new Error(data['subsonic-response'].error?.message || 'Failed to fetch playlist tracks');
-      }
+  async searchMusic(query: string): Promise<{ albums: Album[]; tracks: Song[] }> {
+    try {
+      const response = await this.api.get("search3.view", {
+        params: {
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+          query,
+          artistCount: 0,
+          albumCount: 20,
+          songCount: 20,
+        },
+      });
+      const searchResult = response.data["subsonic-response"].searchResult3;
 
-      return data['subsonic-response'].playlist?.entry?.map(song => ({
+      const albums: Album[] = searchResult.album?.map((album: any) => ({
+        id: album.id,
+        name: album.name,
+        artist: album.artist,
+        artistId: album.artistId,
+        coverArt: album.coverArt ? this.getCoverArtUrl(album.coverArt) : null,
+        trackCount: album.songCount,
+        duration: album.duration,
+        createdAt: new Date(album.created),
+        year: album.year,
+        genre: album.genre,
+      })) || [];
+
+      const tracks: Song[] = searchResult.song?.map((song: any) => ({
         id: song.id,
+        parent: song.parent,
+        isDir: song.isDir,
         title: song.title,
-        artist: song.artist,
         album: song.album,
-        albumId: song.albumId,
-        duration: song.duration || 0,
+        artist: song.artist,
         track: song.track,
         year: song.year,
         genre: song.genre,
-        coverArt: this.getCoverArtUrl(song.coverArt),
-        path: `${this.credentials?.serverUrl}/rest/stream?id=${song.id}&${new URLSearchParams(this.generateAuthParams()).toString()}`,
+        coverArt: song.coverArt ? this.getCoverArtUrl(song.coverArt) : null,
+        size: song.size,
+        contentType: song.contentType,
+        suffix: song.suffix,
+        duration: song.duration,
+        bitRate: song.bitRate,
+        path: song.path,
+        playCount: song.playCount,
+        created: song.created,
+        albumId: song.albumId,
+        artistId: song.artistId,
+        type: song.type,
       })) || [];
+
+      return { albums, tracks };
     } catch (error) {
-      console.error('Failed to fetch playlist tracks:', error);
+      console.error(error);
       throw error;
     }
   }
 
-  async getPlaylist(playlistId: string): Promise<Playlist> {
+  async getNewestAlbums(
+    type = "newest",
+    size = 20,
+    offset = 0
+  ): Promise<Album[]> {
     try {
-      const response = await this.api.get('/getPlaylist', {
+      const response = await this.api.get("getAlbumList.view", {
         params: {
-          ...this.generateAuthParams(),
-          id: playlistId,
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+          type,
+          size,
+          offset,
         },
       });
+      const albums = response.data["subsonic-response"].albumList.album.map(
+        (album: any) => ({
+          id: album.id,
+          name: album.name,
+          artist: album.artist,
+          artistId: album.artistId,
+          coverArt: album.coverArt,
+          trackCount: album.songCount,
+          duration: album.duration,
+          createdAt: new Date(album.created),
+          year: album.year,
+          genre: album.genre,
+        })
+      );
+      return albums;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 
-      const data: SubsonicResponse<{ playlist: any }> = response.data;
+  async getAlbumTracks(id: string): Promise<Song[]> {
+    try {
+      const response = await this.api.get("getAlbum.view", {
+        params: {
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+          id,
+        },
+      });
+      const albumData = response.data["subsonic-response"].album;
+      const songs = albumData.song.map((song: any) => ({
+        id: song.id,
+        parent: song.parent,
+        isDir: song.isDir,
+        title: song.title,
+        album: song.album,
+        artist: song.artist,
+        track: song.track,
+        year: song.year,
+        genre: song.genre,
+        coverArt: song.coverArt,
+        size: song.size,
+        contentType: song.contentType,
+        suffix: song.suffix,
+        duration: song.duration,
+        bitRate: song.bitRate,
+        path: song.path,
+        playCount: song.playCount,
+        created: song.created,
+        albumId: song.albumId,
+        artistId: song.artistId,
+        type: song.type,
+      }));
+      return songs;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 
-      if (data['subsonic-response'].status === 'failed') {
-        throw new Error(
-          data['subsonic-response'].error?.message || 'Failed to fetch playlist',
-        );
-      }
-
-      const playlist = data['subsonic-response'].playlist;
+  async getAlbum(id: string): Promise<Album> {
+    try {
+      const response = await this.api.get("getAlbum.view", {
+        params: {
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+          id,
+        },
+      });
+      const albumData = response.data["subsonic-response"].album;
+      const songs = albumData.song.map((song: any) => ({
+        id: song.id,
+        parent: song.parent,
+        isDir: song.isDir,
+        title: song.title,
+        album: song.album,
+        artist: song.artist,
+        track: song.track,
+        year: song.year,
+        genre: song.genre,
+        coverArt: song.coverArt,
+        size: song.size,
+        contentType: song.contentType,
+        suffix: song.suffix,
+        duration: song.duration,
+        bitRate: song.bitRate,
+        path: song.path,
+        playCount: song.playCount,
+        created: song.created,
+        albumId: song.albumId,
+        artistId: song.artistId,
+        type: song.type,
+      }));
       return {
-        id: playlist.id,
-        name: playlist.name,
-        comment: playlist.comment,
-        owner: playlist.owner,
-        public: playlist.public || false,
-        songCount: playlist.songCount || 0,
-        duration: playlist.duration || 0,
-        created: new Date(playlist.created || Date.now()),
-        changed: new Date(playlist.changed || Date.now()),
-        coverArt: this.getCoverArtUrl(playlist.coverArt),
+        id: albumData.id,
+        name: albumData.name,
+        artist: albumData.artist,
+        artistId: albumData.artistId,
+        coverArt: albumData.coverArt,
+        trackCount: albumData.songCount,
+        duration: albumData.duration,
+        createdAt: new Date(albumData.created),
+        year: albumData.year,
+        genre: albumData.genre,
+        songs,
       };
     } catch (error) {
-      console.error(`Failed to fetch playlist ${playlistId}:`, error);
+      console.error(error);
       throw error;
     }
   }
 
-  async addTrackToPlaylist(
-    playlistId: string,
-    trackId: string,
-  ): Promise<boolean> {
+  async getSong(id: string): Promise<Song> {
     try {
-      const response = await this.api.post(
-        '/updatePlaylist',
-        null,
-        {
-          params: {
-            ...this.generateAuthParams(),
-            playlistId,
-            songIdToAdd: trackId,
-          },
-        },
-      );
-
-      const data: SubsonicResponse = response.data;
-
-      if (data['subsonic-response'].status === 'failed') {
-        throw new Error(
-          data['subsonic-response'].error?.message ||
-            'Failed to add track to playlist',
-        );
-      }
-
-      return data['subsonic-response'].status === 'ok';
-    } catch (error) {
-      console.error('Failed to add track to playlist:', error);
-      throw error;
-    }
-  }
-
-  async createPlaylist(
-    name: string,
-    comment?: string,
-    isPublic?: boolean,
-    imageFile?: File,
-  ): Promise<Playlist> {
-    const formData = new FormData();
-    formData.append('name', name);
-    if (comment) formData.append('comment', comment);
-    if (isPublic !== undefined)
-      formData.append('public', isPublic.toString());
-    if (imageFile) formData.append('image', imageFile);
-
-    const response = await this.api.post(
-      '/createPlaylist',
-      formData,
-      {
-        params: this.generateAuthParams(),
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      },
-    );
-
-    const data: SubsonicResponse<{ playlist: any }> = response.data;
-
-    if (data['subsonic-response'].status === 'failed') {
-      throw new Error(data['subsonic-response'].error?.message || 'Failed to create playlist');
-    }
-
-    const playlist = data['subsonic-response'].playlist;
-    return {
-      id: playlist.id,
-      name: playlist.name,
-      comment: playlist.comment,
-      owner: playlist.owner,
-      public: playlist.public || false,
-      songCount: playlist.songCount || 0,
-      duration: playlist.duration || 0,
-      created: new Date(playlist.created || Date.now()),
-      changed: new Date(playlist.changed || Date.now()),
-      coverArt: this.getCoverArtUrl(playlist.coverArt),
-    };
-  }
-
-  async deletePlaylist(playlistId: string): Promise<boolean> {
-    try {
-      const response = await this.api.post('/deletePlaylist', null, {
+      const response = await this.api.get("getSong.view", {
         params: {
-          ...this.generateAuthParams(),
-          id: playlistId,
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+          id,
         },
       });
-
-      const data: SubsonicResponse = response.data;
-
-      if (data['subsonic-response'].status === 'failed') {
-        throw new Error(data['subsonic-response'].error?.message || 'Failed to delete playlist');
-      }
-
-      return data['subsonic-response'].status === 'ok';
+      const songData = response.data["subsonic-response"].song;
+      return {
+        id: songData.id,
+        parent: songData.parent,
+        isDir: songData.isDir,
+        title: songData.title,
+        album: songData.album,
+        artist: songData.artist,
+        track: songData.track,
+        year: songData.year,
+        genre: songData.genre,
+        coverArt: songData.coverArt,
+        size: songData.size,
+        contentType: songData.contentType,
+        suffix: songData.suffix,
+        duration: songData.duration,
+        bitRate: songData.bitRate,
+        path: songData.path,
+        playCount: songData.playCount,
+        created: songData.created,
+        albumId: songData.albumId,
+        artistId: songData.artistId,
+        type: songData.type,
+      };
     } catch (error) {
-      console.error('Failed to delete playlist:', error);
+      console.error(error);
+      throw error;
+    }
+  }
+
+  getStreamUrl(id: string, maxBitRate = 0) {
+    return `${
+      this.api.defaults.baseURL
+    }/stream.view?u=${this.username}&t=${this.token}&s=${this.salt}&v=1.16.1&c=x2player&id=${id}&maxBitRate=${maxBitRate}`;
+  }
+
+  getCoverArtUrl(id: string, size?: number) {
+    let url = `${
+      this.api.defaults.baseURL
+    }/getCoverArt.view?u=${this.username}&t=${this.token}&s=${this.salt}&v=1.16.1&c=x2player&id=${id}`;
+    if (size) {
+      url += `&size=${size}`;
+    }
+    return url;
+  }
+
+  async search(
+    query: string,
+    artistCount = 10,
+    artistOffset = 0,
+    albumCount = 10,
+    albumOffset = 0,
+    songCount = 20,
+    songOffset = 0
+  ) {
+    try {
+      const response = await this.api.get("search3.view", {
+        params: {
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+          query,
+          artistCount,
+          artistOffset,
+          albumCount,
+          albumOffset,
+          songCount,
+          songOffset,
+        },
+      });
+      const searchResult = response.data["subsonic-response"].searchResult3;
+      return {
+        artists: searchResult.artist?.map((artist: any) => ({
+          id: artist.id,
+          name: artist.name,
+          coverArt: artist.coverArt,
+          albumCount: artist.albumCount,
+        })),
+        albums: searchResult.album?.map((album: any) => ({
+          id: album.id,
+          name: album.name,
+          artist: album.artist,
+          artistId: album.artistId,
+          coverArt: album.coverArt,
+          trackCount: album.songCount,
+          duration: album.duration,
+          created: new Date(album.created),
+          year: album.year,
+          genre: album.genre,
+        })),
+        songs: searchResult.song?.map((song: any) => ({
+          id: song.id,
+          parent: song.parent,
+          isDir: song.isDir,
+          title: song.title,
+          album: song.album,
+          artist: song.artist,
+          track: song.track,
+          year: song.year,
+          genre: song.genre,
+          coverArt: song.coverArt,
+          size: song.size,
+          contentType: song.contentType,
+          suffix: song.suffix,
+          duration: song.duration,
+          bitRate: song.bitRate,
+          path: song.path,
+          playCount: song.playCount,
+          created: song.created,
+          albumId: song.albumId,
+          artistId: song.artistId,
+          type: song.type,
+        })),
+      };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async getPlaylists() {
+    try {
+      const response = await this.api.get("getPlaylists.view", {
+        params: {
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+        },
+      });
+      const playlists =
+        response.data["subsonic-response"].playlists.playlist.map(
+          (playlist: any) => ({
+            id: playlist.id,
+            name: playlist.name,
+            songCount: playlist.songCount,
+            duration: playlist.duration,
+            created: playlist.created,
+            changed: playlist.changed,
+            coverArt: playlist.coverArt,
+            owner: playlist.owner,
+            public: playlist.public,
+          })
+        );
+      return playlists;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async getPlaylist(id: string) {
+    try {
+      const response = await this.api.get("getPlaylist.view", {
+        params: {
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+          id,
+        },
+      });
+      const playlistData = response.data["subsonic-response"].playlist;
+      const songs =
+        playlistData.entry?.map((song: any) => ({
+          id: song.id,
+          parent: song.parent,
+          isDir: song.isDir,
+          title: song.title,
+          album: song.album,
+          artist: song.artist,
+          track: song.track,
+          year: song.year,
+          genre: song.genre,
+          coverArt: song.coverArt,
+          size: song.size,
+          contentType: song.contentType,
+          suffix: song.suffix,
+          duration: song.duration,
+          bitRate: song.bitRate,
+          path: song.path,
+          playCount: song.playCount,
+          created: song.created,
+          albumId: song.albumId,
+          artistId: song.artistId,
+          type: song.type,
+        })) || [];
+      return {
+        id: playlistData.id,
+        name: playlistData.name,
+        songCount: playlistData.songCount,
+        duration: playlistData.duration,
+        created: playlistData.created,
+        changed: playlistData.changed,
+        coverArt: playlistData.coverArt,
+        owner: playlistData.owner,
+        public: playlistData.public,
+        songs,
+      };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async getPlaylistTracks(id: string): Promise<Song[]> {
+    const playlist = await this.getPlaylist(id);
+    return playlist.songs || [];
+  }
+
+  async createPlaylist(name: string, comment?: string, isPublic?: boolean, songs?: string[]) {
+    try {
+      const params: any = {
+        u: this.username,
+        t: this.token,
+        s: this.salt,
+        v: "1.16.1",
+        c: "x2player",
+        f: "json",
+        name,
+      };
+      if (comment) params.comment = comment;
+      if (isPublic !== undefined) params.public = isPublic;
+      if (songs) params.songId = songs;
+
+      const response = await this.api.get("createPlaylist.view", { params });
+      return response.data["subsonic-response"];
+    } catch (error) {
+      console.error(error);
       throw error;
     }
   }
 
   async updatePlaylist(
-    playlistId: string,
+    id: string,
     name?: string,
     comment?: string,
     isPublic?: boolean,
-    imageFile?: File,
-    songIdsToAdd?: string[],
-    songIndexesToRemove?: number[],
-  ): Promise<Playlist> {
+    songsToAdd?: string[],
+    songsToRemove?: number[]
+  ) {
     try {
-      const formData = new FormData();
-      formData.append('playlistId', playlistId);
-      if (name) formData.append('name', name);
-      if (comment) formData.append('comment', comment);
-      if (isPublic !== undefined)
-        formData.append('public', isPublic.toString());
-      if (songIdsToAdd) {
-        songIdsToAdd.forEach(id => formData.append('songIdToAdd', id));
-      }
-      if (songIndexesToRemove) {
-        songIndexesToRemove.forEach(index => formData.append('songIndexToRemove', index.toString()));
-      }
-      if (imageFile) {
-        formData.append('image', imageFile);
-      }
+      const params: any = {
+        u: this.username,
+        t: this.token,
+        s: this.salt,
+        v: "1.16.1",
+        c: "x2player",
+        f: "json",
+        playlistId: id,
+      };
+      if (name) params.name = name;
+      if (comment) params.comment = comment;
+      if (isPublic !== undefined) params.public = isPublic;
+      if (songsToAdd) params.addSongId = songsToAdd;
+      if (songsToRemove) params.removeSongIndex = songsToRemove;
 
-      const response = await this.api.post('/updatePlaylist', formData, {
-        params: this.generateAuthParams(),
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      const data: SubsonicResponse<{ playlist: any }> = response.data;
-
-      if (data['subsonic-response'].status === 'failed') {
-        throw new Error(data['subsonic-response'].error?.message || 'Failed to update playlist');
-      }
-
-      const playlist = data['subsonic-response'].playlist;
-      // Note: Navidrome's updatePlaylist response doesn't return the full playlist object.
-      // You might need to call getPlaylist after updating to get the latest data.
-      return this.getPlaylist(playlist.id); // Fetch updated playlist details
+      const response = await this.api.get("updatePlaylist.view", { params });
+      return response.data["subsonic-response"];
     } catch (error) {
-      console.error('Failed to update playlist:', error);
+      console.error(error);
       throw error;
     }
   }
 
-  async reorderPlaylistTracks(playlistId: string, trackIds: string[]): Promise<boolean> {
+  async reorderPlaylistTracks(playlistId: string, trackIds: string[]) {
     try {
-      // Navidrome's reorderPlaylistEntries expects 'id' for the playlist and 'songId' array for the new order
-      const response = await this.api.post('/reorderPlaylistEntries', null, {
+      const response = await this.api.get("updatePlaylist.view", {
         params: {
-          ...this.generateAuthParams(),
-          id: playlistId,
-          songId: trackIds, // Array of song IDs in the desired order
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+          playlistId,
+          songId: trackIds,
         },
       });
-
-      const data: SubsonicResponse = response.data;
-
-      if (data['subsonic-response'].status === 'failed') {
-        throw new Error(data['subsonic-response'].error?.message || 'Failed to reorder playlist tracks');
-      }
-      return data['subsonic-response'].status === 'ok';
+      return response.data["subsonic-response"];
     } catch (error) {
-      console.error('Failed to reorder playlist tracks:', error);
+      console.error(error);
       throw error;
     }
   }
 
-  getCoverArtUrl(id: string): string | null {
-    if (!this.credentials || !id) {
-      return null;
-    }
-    const params = new URLSearchParams(this.generateAuthParams());
-    return `${this.credentials.serverUrl}/rest/getCoverArt?id=${id}&${params.toString()}`;
-  }
-
-  async getAlbumTracks(albumId: string): Promise<Track[]> {
+  async deletePlaylist(id: string) {
     try {
-      const response = await this.api.get('/getAlbum', {
+      const response = await this.api.get("deletePlaylist.view", {
         params: {
-          ...this.generateAuthParams(),
-          id: albumId,
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+          id,
         },
       });
-
-      const data: SubsonicResponse<{ album: { song: any[] } }> = response.data;
-      
-      if (data['subsonic-response'].status === 'failed') {
-        throw new Error(data['subsonic-response'].error?.message || 'Failed to fetch album tracks');
-      }
-
-      return data['subsonic-response'].album?.song?.map(song => ({
-        id: song.id,
-        title: song.title,
-        artist: song.artist,
-        album: song.album,
-        albumId: song.albumId,
-        duration: song.duration || 0,
-        track: song.track,
-        year: song.year,
-        genre: song.genre,
-        coverArt: this.getCoverArtUrl(song.coverArt),
-        path: `${this.credentials?.serverUrl}/rest/stream?id=${song.id}&${new URLSearchParams(this.generateAuthParams()).toString()}`
-      })) || [];
+      return response.data["subsonic-response"];
     } catch (error) {
-      console.error('Failed to fetch album tracks:', error);
+      console.error(error);
       throw error;
     }
   }
 
-  getStreamUrl(trackId: string): string {
-    if (!this.credentials) {
-      throw new Error('No credentials set');
+  async scanLibrary() {
+    try {
+      const response = await this.api.get("startScan.view", {
+        params: {
+          u: this.username,
+          t: this.token,
+          s: this.salt,
+          v: "1.16.1",
+          c: "x2player",
+          f: "json",
+        },
+      });
+      return response.data["subsonic-response"];
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
-    
-    const params = new URLSearchParams(this.generateAuthParams());
-    return `${this.credentials.serverUrl}/rest/stream?id=${trackId}&${params.toString()}`;
   }
 }
 
-import { MockNavidromeService } from "./mockData";
-
-export const navidromeService = new MockNavidromeService();
+export const navidrome = new NavidromeService();

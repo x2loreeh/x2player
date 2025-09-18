@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/authStore";
 import { usePlayerStore } from "@/stores/playerStore";
-import { navidromeService } from "@/services/navidrome";
+import { navidrome } from "@/services/navidrome";
 import { AlbumCard } from "@/components/ui/album-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import type { Album, Track } from "@shared/schema";
+import type { Album, Song as Track } from "@/types/types";
 
 const musicCategories = [
   { name: "Rock", gradient: "from-purple-600 to-blue-600", icon: Music },
@@ -28,7 +28,7 @@ export default function Search() {
 
   useEffect(() => {
     if (credentials) {
-      navidromeService.setCredentials(credentials);
+      navidrome.setCredentials(credentials);
     }
   }, [credentials]);
 
@@ -43,13 +43,13 @@ export default function Search() {
 
   const { data: searchResults, isLoading } = useQuery({
     queryKey: ["/api/search", debouncedQuery],
-    queryFn: () => navidromeService.searchMusic(debouncedQuery),
+    queryFn: () => navidrome.searchMusic(debouncedQuery),
     enabled: !!credentials && !!debouncedQuery && debouncedQuery.length > 2,
   });
 
   const handleAlbumClick = async (album: Album) => {
     try {
-      const tracks = await navidromeService.getAlbumTracks(album.id);
+      const tracks = await navidrome.getAlbumTracks(album.id);
       playQueue(tracks);
     } catch (error) {
       console.error("Failed to play album:", error);
@@ -125,7 +125,7 @@ export default function Search() {
                   <div>
                     <h3 className="text-lg font-semibold mb-4">Albums</h3>
                     <div className="grid grid-cols-2 gap-4">
-                      {searchResults.albums.slice(0, 6).map((album) => (
+                      {searchResults.albums.slice(0, 6).map((album: Album) => (
                         <AlbumCard
                           key={album.id}
                           album={album}
@@ -143,7 +143,7 @@ export default function Search() {
                   <div>
                     <h3 className="text-lg font-semibold mb-4">Songs</h3>
                     <div className="space-y-2">
-                      {searchResults.tracks.slice(0, 10).map((track) => (
+                      {searchResults.tracks.slice(0, 10).map((track: Track) => (
                         <div
                           key={track.id}
                           className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"

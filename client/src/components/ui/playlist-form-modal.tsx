@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { navidromeService } from "@/services/navidrome";
+import { navidrome } from "@/services/navidrome";
 import { toast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -32,11 +32,11 @@ export default function PlaylistFormModal({
   const [preview, setPreview] = useState<string | null>(null);
 
   const mutation = useMutation({
-    mutationFn: ({ id, name }: { id?: string; name: string }) => {
+    mutationFn: ({ id, name }: { id?: string; name:string }) => {
       if (id) {
-        return navidromeService.updatePlaylist(id, name);
+        return navidrome.updatePlaylist(id, name);
       }
-      return navidromeService.createPlaylist(name);
+      return navidrome.createPlaylist(name);
     },
     onSuccess: () => {
       toast({

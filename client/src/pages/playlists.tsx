@@ -36,7 +36,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useMutation } from "@tanstack/react-query";
-import { navidromeService } from "@/services/navidrome";
+import { navidrome } from "@/services/navidrome";
 
 function PlaylistsPage() {
   const { data: playlists, refetch } = usePlaylists();
@@ -106,10 +106,9 @@ export function PlaylistDetailsPage({ id }: { id: string }) {
 
   const { mutate: updatePlaylistMutation } = useMutation({
     mutationFn: (variables: { id: string; trackIds: string[] }) =>
-      navidromeService.updatePlaylist(
+      navidrome.reorderPlaylistTracks(
         variables.id,
-        undefined,
-        variables.trackIds.join(",")
+        variables.trackIds
       ),
     onSuccess: () => {
       refetchPlaylist();

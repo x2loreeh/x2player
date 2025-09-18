@@ -3,7 +3,7 @@ import { useRoute, useLocation } from "wouter";
 import { ArrowLeft, Play, MoreHorizontal, Shuffle, Heart, ListPlus } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { usePlayerStore } from "@/stores/playerStore";
-import { navidromeService } from "@/services/navidrome";
+import { navidrome } from "@/services/navidrome";
 import { MockNavidromeService } from "@/services/mockData";
 import { Button } from "@/components/ui/button";
 import type { Album, Track } from "@shared/schema";
@@ -29,11 +29,11 @@ export default function AlbumPage() {
   
   // Use mock service when no credentials are available
   const mockService = new MockNavidromeService();
-  const activeService = credentials ? navidromeService : mockService;
+  const activeService = credentials ? navidrome : mockService;
 
   useEffect(() => {
     if (credentials) {
-      navidromeService.setCredentials(credentials);
+      navidrome.setCredentials(credentials);
     }
   }, [credentials]);
 

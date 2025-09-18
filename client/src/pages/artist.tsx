@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
 import { useAuthStore } from "@/stores/authStore";
-import { navidromeService } from "@/services/navidrome";
+import { navidrome } from "@/services/navidrome";
 import { MockNavidromeService } from "@/services/mockData";
 import { AlbumCard } from "@/components/ui/album-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Artist, Album } from "@shared/schema";
+import type { Artist, Album } from "../types/types";
 import { Music, Play, ChevronLeft, Heart } from "lucide-react";
 
 export default function ArtistPage() {
@@ -18,11 +18,11 @@ export default function ArtistPage() {
   const [isAnimating, setIsAnimating] = useState(false);
 
   const mockService = new MockNavidromeService();
-  const activeService = credentials ? navidromeService : mockService;
+  const activeService = credentials ? navidrome : mockService;
 
   useEffect(() => {
     if (credentials) {
-      navidromeService.setCredentials(credentials);
+      navidrome.setCredentials(credentials);
     }
   }, [credentials]);
 
@@ -108,7 +108,7 @@ export default function ArtistPage() {
           ) : (
             <div className="grid grid-cols-2 gap-4">
               {albums?.map((album) => (
-                <div>
+                <div key={album.id}>
                   <AlbumCard
                     key={album.id}
                     album={album}

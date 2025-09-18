@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { navidromeService } from '@/services/navidrome';
-import type { Track as SharedTrack, Playlist as SharedPlaylist } from '@shared/schema';
+import { navidrome } from '@/services/navidrome';
+import type { Track as SharedTrack, Playlist as SharedPlaylist } from 'shared/schema';
 
 export type Track = SharedTrack;
 export type Playlist = SharedPlaylist;
@@ -40,14 +40,14 @@ const queryKeys = {
 export const usePlaylists = () => {
   return useQuery({
     queryKey: queryKeys.playlists,
-    queryFn: () => navidromeService.getPlaylists(),
+    queryFn: () => navidrome.getPlaylists(),
   });
 };
 
 export const usePlaylist = (id: string) => {
   return useQuery({
     queryKey: queryKeys.playlist(id),
-    queryFn: () => navidromeService.getPlaylist(id),
+    queryFn: () => navidrome.getPlaylist(id),
     enabled: !!id, // La query non parte se l'id non è valido
   });
 };
@@ -55,7 +55,7 @@ export const usePlaylist = (id: string) => {
 export const usePlaylistTracks = (id: string) => {
   return useQuery({
     queryKey: queryKeys.playlistTracks(id),
-    queryFn: () => navidromeService.getPlaylistTracks(id),
+    queryFn: () => navidrome.getPlaylistTracks(id),
     enabled: !!id,
   });
 };
@@ -65,7 +65,7 @@ export const useCreatePlaylist = ({ onSuccess }: { onSuccess?: () => void }) => 
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ name, comment, isPublic }: CreatePlaylistParams) =>
-      navidromeService.createPlaylist(name, comment, isPublic),
+      navidrome.createPlaylist(name, comment, isPublic),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
       onSuccess?.();
@@ -77,7 +77,7 @@ export const useEditPlaylist = ({ onSuccess }: { onSuccess?: () => void }) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, name, comment, isPublic }: EditPlaylistParams) =>
-      navidromeService.updatePlaylist(id, name, comment, isPublic),
+      navidrome.updatePlaylist(id, name, comment, isPublic),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
       queryClient.invalidateQueries({ queryKey: queryKeys.playlist(data.id) });
@@ -89,7 +89,7 @@ export const useEditPlaylist = ({ onSuccess }: { onSuccess?: () => void }) => {
 export const useDeletePlaylist = ({ onSuccess }: { onSuccess?: () => void }) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => navidromeService.deletePlaylist(id),
+    mutationFn: (id: string) => navidrome.deletePlaylist(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
       onSuccess?.();
@@ -105,7 +105,7 @@ export const useRemoveTrackFromPlaylist = ({
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ playlistId, trackIndex }: RemoveTrackParams) =>
-      navidromeService.updatePlaylist(playlistId, undefined, undefined, undefined, undefined, undefined, [trackIndex]),
+      navidrome.updatePlaylist(playlistId, undefined, undefined, undefined, undefined, [trackIndex]),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.playlistTracks(variables.playlistId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.playlist(variables.playlistId) });
@@ -122,7 +122,7 @@ export const useUpdatePlaylistTracks = ({
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ playlistId, trackIds }: UpdateTracksParams) =>
-      navidromeService.reorderPlaylistTracks(playlistId, trackIds),
+      navidrome.reorderPlaylistTracks(playlistId, trackIds),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.playlistTracks(variables.playlistId) });
       onSuccess?.();

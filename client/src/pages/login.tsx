@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Music, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
-import { navidromeService } from "@/services/navidrome";
+import { navidrome } from "@/services/navidrome";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
@@ -40,8 +40,8 @@ export default function Login() {
       };
 
       // Set credentials and test connection
-      navidromeService.setCredentials(credentials);
-      const isConnected = await navidromeService.ping();
+      navidrome.setCredentials(credentials);
+      const isConnected = await navidrome.ping();
 
       if (!isConnected) {
         throw new Error('Failed to connect to Navidrome server. Please check your credentials and server URL.');

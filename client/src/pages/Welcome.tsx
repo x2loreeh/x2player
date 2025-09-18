@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { useConfigStore } from "@/stores/configStore";
+import { useSettingsStore } from "@/stores/settingsStore";
 import { useTranslation } from "react-i18next";
 import { Server, Folder } from "lucide-react";
 import { useLocation } from "wouter";
 
 export function Welcome() {
-  const { setDataSource } = useConfigStore();
+  const { setDataSource } = useSettingsStore();
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
 

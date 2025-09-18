@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMutation } from "@tanstack/react-query";
-import { navidromeService } from "@/services/navidrome";
+import { navidrome } from "@/services/navidrome";
 
 export default function SettingsPage() {
   const t = useTranslation();
@@ -44,7 +44,7 @@ export default function SettingsPage() {
     setTheme,
   } = useSettingsStore();
   const { mutate: syncLibrary, isPending: isSyncing } = useMutation({
-    mutationFn: () => navidromeService.scanLibrary(),
+    mutationFn: () => navidrome.scanLibrary(),
     onSuccess: () => {
       console.log("Library sync succeeded");
     },

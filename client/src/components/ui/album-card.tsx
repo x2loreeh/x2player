@@ -1,8 +1,9 @@
 import { Play } from "lucide-react";
-import type { Album } from "@shared/schema";
-import { cn } from "@/lib/utils";
+import type { Album } from "../../types/types";
+import { cn } from "../../lib/utils";
 
-interface AlbumCardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onClick'> {
+interface AlbumCardProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "onClick"> {
   album: Album;
   size?: "small" | "medium" | "large";
   onClick?: (album: Album) => void;
