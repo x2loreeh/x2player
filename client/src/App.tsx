@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, useLocation, Redirect } from "wouter";
 import { Toaster } from "./components/ui/toaster";
 import { BottomNavigation } from "./components/ui/bottom-navigation";
 import { MiniPlayer } from "./components/ui/mini-player";
@@ -22,8 +22,9 @@ import NotFound from "./pages/not-found";
 import { LocalFiles } from "./pages/LocalFiles";
 
 function App() {
-  const { dataSource, navidromeCredentials, setNavidromeCredentials } =
-    useSettingsStore();
+  const { dataSource, navidromeCredentials, theme } = useSettingsStore();
+  const { currentTrack } = usePlayerStore();
+  const [location] = useLocation();
 
   useEffect(() => {
     if (dataSource === "navidrome" && navidromeCredentials) {
@@ -37,34 +38,6 @@ function App() {
     enabled: dataSource === "navidrome" && !!navidromeCredentials,
     retry: false,
   });
-
-  if (!dataSource) {
-    return <Welcome />;
-  }
-
-  if (dataSource === "navidrome") {
-    if (isLoading) {
-      return (
-        <div className="flex h-full items-center justify-center">
-          <Loader2 className="w-12 h-12 animate-spin" />
-        </div>
-      );
-    }
-    if (!navidromeCredentials || !session) {
-      return <Login />;
-    }
-  }
-
-  return <AppContent />;
-}
-
-function AppContent() {
-  const [location] = useLocation();
-  const { theme } = useSettingsStore();
-  const { currentTrack } = usePlayerStore();
-
-  const isDesktop = window.matchMedia("(min-width: 768px)").matches;
-  const showPlayer = !!currentTrack;
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -81,13 +54,34 @@ function AppContent() {
     root.classList.add(effectiveTheme);
   }, [theme]);
 
+  if (!dataSource && location !== "/welcome") {
+    return <Redirect to="/welcome" />;
+  }
+
+  if (dataSource === "navidrome") {
+    if (isLoading) {
+      return (
+        <div className="flex h-full items-center justify-center">
+          <Loader2 className="w-12 h-12 animate-spin" />
+        </div>
+      );
+    }
+    if ((!navidromeCredentials || !session) && location !== "/login") {
+      return <Redirect to="/login" />;
+    }
+  }
+
+  const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+  const showPlayer = !!currentTrack;
+
   return (
     <div className="relative min-h-screen">
       <Toaster />
       <main
         className={cn("pb-24", { "pt-16": isDesktop, "pb-40": showPlayer })}
       >
-        <Switch location={location}>
+        <Switch>
+          <Route path="/welcome" component={Welcome} />
           <Route path="/login" component={Login} />
           <Route path="/local-files" component={LocalFiles} />
           <Route path="/" component={Home} />
