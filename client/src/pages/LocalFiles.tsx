@@ -112,9 +112,17 @@ export function LocalFiles() {
       }
     } catch (e) {
       console.error("Error during selection:", e);
-      if (!(e instanceof Error && e.message === "pickDirectory cancelled.")) {
-        alert("An error occurred during selection.");
+      let message = "An error occurred during selection.";
+      if (e instanceof Error) {
+        // Don't show cancellation errors to the user
+        if (e.message.includes("cancelled")) {
+          return;
+        }
+        message += `\nDetails: ${e.message}`;
+      } else if (typeof e === "string") {
+        message += `\nDetails: ${e}`;
       }
+      alert(message);
     }
   };
 
