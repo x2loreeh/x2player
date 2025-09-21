@@ -12,7 +12,7 @@ import { Loader2 } from "lucide-react";
 
 import { Welcome } from "./pages/Welcome";
 import Login from "./pages/login";
-import Home from "./pages/home.tsx";
+import Home from "./pages/home";
 import Album from "./pages/album";
 import ArtistPage from "./pages/artist";
 import Search from "./pages/search";
