@@ -1,9 +1,9 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { navidrome } from "../services/navidrome";
-import { AlbumCard } from "../components/ui/album-card";
+import { navidrome } from "@/services/navidrome";
+import { AlbumCard } from "@/components/ui/album-card";
 import { useTranslation } from "react-i18next";
-import { useSettingsStore } from "../stores/settingsStore";
+import { useSettingsStore } from "@/stores/settingsStore";
 import { useLocalFilesStore } from "@/stores/localFilesStore";
 import { Album, Song } from "@/types/types";
 

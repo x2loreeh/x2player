@@ -48,5 +48,10 @@
   "miniplayer.queue": "Coda",
   "miniplayer.queueDescription": "Coda dei brani da riprodurre.",
   "home.title": "Home",
-  "home.recentlyPlayed": "Ascoltati di recente"
+  "home.recentlyPlayed": "Ascoltati di recente",
+  "home.recentlyAdded": "Aggiunti di recente",
+  "search.title": "Cerca",
+  "search.placeholder": "Cerca brani, album, artisti...",
+  "search.albums": "Album",
+  "search.songs": "Brani"
 }
