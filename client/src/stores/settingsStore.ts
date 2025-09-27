@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { NavidromeCredentials } from "@shared/schema";
+import type { NavidromeCredentials } from "@/types/types";
 
-type DataSource = "navidrome" | "local";
+type DataSource = "navidrome" | "local" | "both";
 
 type SettingsState = {
   dataSource: DataSource | null;

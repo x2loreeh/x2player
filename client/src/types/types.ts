@@ -21,14 +21,8 @@ export interface Album {
   id: string;
   name: string;
   artist: string;
-  artistId: string;
-  coverArt: string | null;
-  trackCount: number;
-  duration: number;
-  createdAt: Date;
-  year: number | null;
-  genre: string | null;
-  songs?: Song[];
+  coverArt: string;
+  songCount: number;
 }
 
 export interface Playlist {
