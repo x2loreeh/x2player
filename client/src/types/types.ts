@@ -23,6 +23,7 @@ export interface Album {
   artist: string;
   coverArt: string;
   songCount: number;
+  year?: number;
 }
 
 export interface Playlist {
