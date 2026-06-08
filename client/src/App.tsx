@@ -10,6 +10,7 @@ import { useAuthStore } from "./stores/authStore";
 import { useQuery } from "@tanstack/react-query";
 import { navidrome } from "./services/navidrome";
 import { Loader2 } from "lucide-react";
+import i18n from "./i18n";
 
 import { Welcome } from "./pages/Welcome";
 import Login from "./pages/login";
@@ -23,7 +24,7 @@ import NotFound from "./pages/not-found";
 import { LocalFiles } from "./pages/LocalFiles";
 
 function App() {
-  const { dataSource, theme } = useSettingsStore();
+  const { dataSource, theme, language } = useSettingsStore();
   const { credentials: navidromeCredentials } = useAuthStore();
   const { currentTrack } = usePlayerStore();
   const [location] = useLocation();
@@ -55,6 +56,12 @@ function App() {
 
     root.classList.add(effectiveTheme);
   }, [theme]);
+
+  useEffect(() => {
+    if (i18n.language !== language) {
+      i18n.changeLanguage(language);
+    }
+  }, [language]);
 
   if (!dataSource && location !== "/welcome") {
     return <Redirect to="/welcome" />;

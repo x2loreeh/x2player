@@ -59,13 +59,13 @@ const SearchPage = () => {
   return (
     <div className="min-h-screen bg-background text-foreground pb-32">
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md px-4 py-4 border-b border-white/5">
-        <h1 className="text-3xl font-bold mb-4">{t("search.title", "Search")}</h1>
+        <h1 className="text-3xl font-bold mb-4">{t("sidebar.search")}</h1>
         <div className="relative">
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
           <input
             type="text"
             className="w-full bg-secondary/50 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all"
-            placeholder={t("search.placeholder", "Songs, Albums, or Artists")}
+            placeholder={t("search.placeholder")}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
           />
@@ -83,7 +83,7 @@ const SearchPage = () => {
           <div className="space-y-8">
             {combinedAlbums.length > 0 && (
               <section>
-                <h2 className="text-xl font-bold mb-4">{t("search.albums", "Albums")}</h2>
+                <h2 className="text-xl font-bold mb-4">{t("search.albums")}</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {combinedAlbums.map((album: Album) => (
                     <AlbumCard
@@ -98,7 +98,7 @@ const SearchPage = () => {
 
             {combinedSongs.length > 0 && (
               <section>
-                <h2 className="text-xl font-bold mb-4">{t("search.songs", "Songs")}</h2>
+                <h2 className="text-xl font-bold mb-4">{t("search.songs")}</h2>
                 <div className="space-y-1">
                   {combinedSongs.map((song: Song) => (
                     <SongItem
@@ -115,7 +115,7 @@ const SearchPage = () => {
 
             {combinedAlbums.length === 0 && combinedSongs.length === 0 && (
               <div className="text-center py-12 text-muted-foreground">
-                <p>No results found for "{debouncedSearchText}"</p>
+                <p>{t("search.noResults")} "{debouncedSearchText}"</p>
               </div>
             )}
           </div>
@@ -124,7 +124,7 @@ const SearchPage = () => {
         {!debouncedSearchText && (
           <div className="text-center py-12 text-muted-foreground">
             <SearchIcon className="w-12 h-12 mx-auto mb-4 opacity-20" />
-            <p>Start typing to search your library</p>
+            <p>{t("search.startTyping", "Start typing to search your library")}</p>
           </div>
         )}
       </div>

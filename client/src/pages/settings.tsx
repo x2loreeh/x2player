@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { useMutation } from "@tanstack/react-query";
 import { navidrome } from "@/services/navidrome";
+import i18n from "@/i18n";
 
 export default function SettingsPage() {
   const t = useTranslation();
@@ -59,6 +60,7 @@ export default function SettingsPage() {
 
   const handleLanguageChange = (value: string) => {
     setLanguage(value);
+    i18n.changeLanguage(value);
   };
 
   const handleThemeChange = (value: "light" | "dark" | "system") => {
@@ -261,6 +263,9 @@ export default function SettingsPage() {
                   <SelectContent>
                     <SelectItem value="en">English</SelectItem>
                     <SelectItem value="it">Italiano</SelectItem>
+                    <SelectItem value="es">Español</SelectItem>
+                    <SelectItem value="fr">Français</SelectItem>
+                    <SelectItem value="de">Deutsch</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

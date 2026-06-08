@@ -16,8 +16,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 export default function AlbumPage() {
+  const { t } = useTranslation();
   const [, params] = useRoute("/album/:id");
   const [, setLocation] = useLocation();
   const [album, setAlbum] = useState<Album | null>(null);
@@ -161,7 +163,7 @@ export default function AlbumPage() {
                   {album.artist}
                 </p>
                 <p className="text-muted-foreground text-sm">
-                  {tracks.length} tracks • {Math.floor((album.duration || 0) / 60)} min
+                  {tracks.length} {t("album.tracks")} • {Math.floor((album.duration || 0) / 60)} {t("album.min")}
                 </p>
               </div>
               {/* Play Buttons */}
@@ -224,12 +226,12 @@ export default function AlbumPage() {
                             onClick={() => {
                               toggleLike(track.id);
                               toast({
-                                title: likedSongs.includes(track.id) ? "Removed from saved songs" : "Added to saved songs",
+                                title: likedSongs.includes(track.id) ? t("player.removedFromLiked") : t("player.addedToLiked"),
                               });
                             }}
                           >
                             <Heart className={`mr-4 h-5 w-5 ${likedSongs.includes(track.id) ? 'fill-white' : ''}`} />
-                            {likedSongs.includes(track.id) ? "Saved Song" : "Save Song"}
+                            {likedSongs.includes(track.id) ? t("album.savedSong") : t("album.saveSong")}
                           </Button>
                           <Button
                             variant="ghost"
@@ -237,13 +239,13 @@ export default function AlbumPage() {
                             onClick={() => {
                               addToQueue(track);
                               toast({
-                                title: "Added to queue",
+                                title: t("player.addedToQueue"),
                                 description: track.title,
                               });
                             }}
                           >
                             <ListPlus className="mr-4 h-5 w-5" />
-                            Add to queue
+                            {t("album.addToQueue")}
                           </Button>
                         </div>
                       </div>

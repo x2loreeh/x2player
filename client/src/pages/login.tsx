@@ -8,8 +8,10 @@ import { Music, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { navidrome } from "@/services/navidrome";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 export default function Login() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -79,8 +81,8 @@ export default function Login() {
           <div className="w-20 h-20 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6">
             <Music className="text-foreground text-4xl" />
           </div>
-          <h1 className="text-3xl font-bold text-center mb-2 text-foreground">x2player</h1>
-          <p className="text-muted-foreground">Connect to your Navidrome server</p>
+          <h1 className="text-3xl font-bold text-center mb-2 text-foreground">{t("login.title", "x2player")}</h1>
+          <p className="text-muted-foreground">{t("login.subtitle")}</p>
         </div>
 
         <Card className="bg-secondary border-border">
@@ -88,7 +90,7 @@ export default function Login() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="serverUrl" className="text-muted-foreground">
-                  Server URL
+                  {t("login.serverUrl")}
                 </Label>
                 <Input
                   id="serverUrl"
@@ -103,12 +105,12 @@ export default function Login() {
               
               <div className="space-y-2">
                 <Label htmlFor="username" className="text-muted-foreground">
-                  Username
+                  {t("login.username")}
                 </Label>
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Username"
+                  placeholder={t("login.username")}
                   value={formData.username}
                   onChange={handleInputChange('username')}
                   className="bg-secondary border-border text-foreground placeholder-dark-text-secondary focus:border-dark-text-secondary"
@@ -118,12 +120,12 @@ export default function Login() {
               
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-muted-foreground">
-                  Password
+                  {t("login.password")}
                 </Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Password"
+                  placeholder={t("login.password")}
                   value={formData.password}
                   onChange={handleInputChange('password')}
                   className="bg-secondary border-border text-foreground placeholder-dark-text-secondary focus:border-dark-text-secondary"
@@ -138,10 +140,10 @@ export default function Login() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Connecting...
+                    {t("login.connecting")}
                   </>
                 ) : (
-                  "Connect"
+                  t("login.connect")
                 )}
               </Button>
             </form>
@@ -150,7 +152,7 @@ export default function Login() {
         
         <div className="mt-8 text-center">
           <p className="text-center text-muted-foreground text-sm">
-            Don't have a server? Learn more about{" "}
+            {t("login.noServer")}{" "}
             <a href="https://www.navidrome.org/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground text-sm hover:underline">
               Navidrome
             </a>

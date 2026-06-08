@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface FullPlayerProps {
   isOpen: boolean;
@@ -46,6 +47,7 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
     addToQueue,
   } = usePlayerStore();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   if (!currentTrack) return null;
 
@@ -54,7 +56,7 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
   const handleLike = () => {
     toggleLike(currentTrack.id);
     toast({
-      title: isLiked ? "Removed from Liked Songs" : "Added to Liked Songs",
+      title: isLiked ? t("player.removedFromLiked") : t("player.addedToLiked"),
       duration: 2000,
     });
   };
@@ -62,8 +64,8 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
   const handleAddToQueue = () => {
     addToQueue(currentTrack);
     toast({
-      title: "Added to queue",
-      description: `"${currentTrack.title}" has been added to the end of the queue.`,
+      title: t("player.addedToQueue"),
+      description: currentTrack.title,
       duration: 2000,
     });
   };
@@ -118,7 +120,7 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem onClick={handleAddToQueue}>
-                    Add to queue
+                    {t("player.addToQueue")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

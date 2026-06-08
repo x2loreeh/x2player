@@ -37,8 +37,10 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useMutation } from "@tanstack/react-query";
 import { navidrome } from "@/services/navidrome";
+import { useTranslation } from "react-i18next";
 
 function PlaylistsPage() {
+  const { t } = useTranslation();
   const { data: playlists, refetch } = usePlaylists();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -49,8 +51,8 @@ function PlaylistsPage() {
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Playlists</h1>
-        <Button onClick={() => setIsModalOpen(true)}>New Playlist</Button>
+        <h1 className="text-2xl font-bold">{t("playlists.title")}</h1>
+        <Button onClick={() => setIsModalOpen(true)}>{t("playlists.create")}</Button>
       </div>
 
       <PlaylistFormModal
@@ -91,6 +93,7 @@ function PlaylistsPage() {
 }
 
 export function PlaylistDetailsPage({ id }: { id: string }) {
+  const { t } = useTranslation();
   const { data: playlist, refetch: refetchPlaylist } = usePlaylist(id);
   const { data: tracksData } = usePlaylistTracks(id);
   const [location, navigate] = useLocation();
@@ -201,7 +204,7 @@ export function PlaylistDetailsPage({ id }: { id: string }) {
           <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6">
             <h1 className="text-4xl md:text-5xl font-bold text-white">{playlist.name}</h1>
             <p className="text-sm text-gray-300 mt-1">
-              {tracks.length} tracks, {formatDuration(totalDuration)}
+              {tracks.length} {t("album.tracks")}, {formatDuration(totalDuration)}
             </p>
           </div>
           <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6">
@@ -215,11 +218,11 @@ export function PlaylistDetailsPage({ id }: { id: string }) {
           <div className="absolute top-4 right-4 flex gap-2">
               {isOrderChanged && (
                 <Button onClick={handleSaveOrder} className="bg-primary hover:bg-primary/90">
-                  Save Order
+                  {t("playlists.save")}
                 </Button>
               )}
               <Button onClick={handleShufflePlay} className="bg-black/50 hover:bg-black/70">
-                <Shuffle className="mr-2 h-4 w-4" /> Shuffle
+                <Shuffle className="mr-2 h-4 w-4" /> {t("player.shuffle", "Shuffle")}
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -229,10 +232,10 @@ export function PlaylistDetailsPage({ id }: { id: string }) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem onClick={() => setIsEditModalOpen(true)}>
-                    Edit Playlist
+                    {t("playlists.edit", "Edit Playlist")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleDelete}>
-                    Delete Playlist
+                    {t("playlists.delete", "Delete Playlist")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
