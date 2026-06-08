@@ -20,6 +20,19 @@ export class NavidromeService {
     });
     this.username = credentials.username;
 
+    this.api.interceptors.request.use((config) => {
+      config.params = {
+        u: this.username,
+        t: this.token,
+        s: this.salt,
+        v: "1.16.1",
+        c: "x2player",
+        f: "json",
+        ...config.params,
+      };
+      return config;
+    });
+
     if (credentials.password) {
       const salt = Math.random().toString(36).substring(2, 12);
       const token = md5(credentials.password + salt);
@@ -35,12 +48,7 @@ export class NavidromeService {
     try {
       await this.api.get("ping.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
         },
       });
       return true;
@@ -53,12 +61,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("ping.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
         },
       });
       if (response.data["subsonic-response"].status === "ok") {
@@ -79,7 +82,7 @@ export class NavidromeService {
   async checkAuth() {
     try {
       const response = await this.api.get("ping.view", {
-        params: { u: this.username, t: this.token, s: this.salt, v: "1.16.1", c: "x2player" },
+        params: { },
       });
       if (response.data["subsonic-response"].status === "ok") {
         return response.data["subsonic-response"];
@@ -98,12 +101,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("getArtists.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
           musicFolderId,
         },
       });
@@ -127,12 +125,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("getArtist.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
           id,
         },
       });
@@ -160,12 +153,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("getArtist.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
           id,
         },
       });
@@ -202,12 +190,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("search3.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
           query,
           artistCount: 0,
           albumCount: 20,
@@ -268,12 +251,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("getAlbumList.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
           type,
           size,
           offset,
@@ -304,12 +282,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("getAlbum.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
           id,
         },
       });
@@ -348,12 +321,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("getAlbum.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
           id,
         },
       });
@@ -404,12 +372,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("getSong.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
           id,
         },
       });
@@ -471,12 +434,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("search3.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
           query,
           artistCount,
           artistOffset,
@@ -540,12 +498,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("getPlaylists.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
         },
       });
       const playlists =
@@ -573,12 +526,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("getPlaylist.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
           id,
         },
       });
@@ -633,12 +581,7 @@ export class NavidromeService {
   async createPlaylist(name: string, comment?: string, isPublic?: boolean, songs?: string[]) {
     try {
       const params: any = {
-        u: this.username,
-        t: this.token,
-        s: this.salt,
-        v: "1.16.1",
-        c: "x2player",
-        f: "json",
+        
         name,
       };
       if (comment) params.comment = comment;
@@ -663,12 +606,7 @@ export class NavidromeService {
   ) {
     try {
       const params: any = {
-        u: this.username,
-        t: this.token,
-        s: this.salt,
-        v: "1.16.1",
-        c: "x2player",
-        f: "json",
+        
         playlistId: id,
       };
       if (name) params.name = name;
@@ -689,12 +627,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("updatePlaylist.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
           playlistId,
           songId: trackIds,
         },
@@ -710,12 +643,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("deletePlaylist.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
           id,
         },
       });
@@ -730,12 +658,7 @@ export class NavidromeService {
     try {
       const response = await this.api.get("startScan.view", {
         params: {
-          u: this.username,
-          t: this.token,
-          s: this.salt,
-          v: "1.16.1",
-          c: "x2player",
-          f: "json",
+          
         },
       });
       return response.data["subsonic-response"];

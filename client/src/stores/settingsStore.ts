@@ -1,12 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { NavidromeCredentials } from "@/types/types";
 
 type DataSource = "navidrome" | "local" | "both";
 
 type SettingsState = {
   dataSource: DataSource | null;
-  navidromeCredentials: NavidromeCredentials | null;
   localMusicPath: string | null;
   theme: "light" | "dark" | "system";
   language: string;
@@ -16,7 +14,6 @@ type SettingsState = {
   crossfade: number;
   normalizeVolume: boolean;
   setDataSource: (dataSource: DataSource) => void;
-  setNavidromeCredentials: (credentials: NavidromeCredentials) => void;
   setLocalMusicPath: (path: string) => void;
   setTheme: (theme: "light" | "dark" | "system") => void;
   setLanguage: (language: string) => void;
@@ -32,7 +29,6 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       dataSource: null,
-      navidromeCredentials: null,
       localMusicPath: null,
       theme: "dark",
       language: "en",
@@ -42,8 +38,6 @@ export const useSettingsStore = create<SettingsState>()(
       crossfade: 0,
       normalizeVolume: false,
       setDataSource: (dataSource) => set({ dataSource }),
-      setNavidromeCredentials: (credentials) =>
-        set({ navidromeCredentials: credentials }),
       setLocalMusicPath: (path) => set({ localMusicPath: path }),
       setTheme: (theme) => set({ theme }),
       setLanguage: (language) => set({ language }),
@@ -54,7 +48,6 @@ export const useSettingsStore = create<SettingsState>()(
       setNormalizeVolume: (normalize) => set({ normalizeVolume: normalize }),
       logout: () =>
         set({
-          navidromeCredentials: null,
           dataSource: null,
           localMusicPath: null,
         }),

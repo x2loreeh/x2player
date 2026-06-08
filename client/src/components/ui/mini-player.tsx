@@ -130,11 +130,11 @@ export function MiniPlayer() {
                       ? "animate-marquee-bidirectional inline-block"
                       : "truncate block"
                   )}>
-                    {currentTrack?.title || t("No track selected")}
+                    {currentTrack?.title || t("miniplayer.noTrack")}
                   </p>
                 </div>
                 <p className="text-dark-text-secondary text-xs truncate block">
-                  {currentTrack?.artist || t("Select a song to play")}
+                  {currentTrack?.artist || t("miniplayer.selectTrack")}
                 </p>
               </div>
             </div>

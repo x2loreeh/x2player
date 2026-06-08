@@ -6,6 +6,7 @@ import { MiniPlayer } from "./components/ui/mini-player";
 import { cn } from "./lib/utils";
 import { useSettingsStore } from "./stores/settingsStore";
 import { usePlayerStore } from "./stores/playerStore";
+import { useAuthStore } from "./stores/authStore";
 import { useQuery } from "@tanstack/react-query";
 import { navidrome } from "./services/navidrome";
 import { Loader2 } from "lucide-react";
@@ -22,7 +23,8 @@ import NotFound from "./pages/not-found";
 import { LocalFiles } from "./pages/LocalFiles";
 
 function App() {
-  const { dataSource, navidromeCredentials, theme } = useSettingsStore();
+  const { dataSource, theme } = useSettingsStore();
+  const { credentials: navidromeCredentials } = useAuthStore();
   const { currentTrack } = usePlayerStore();
   const [location] = useLocation();
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { NavidromeCredentials, User } from '@shared/schema';
+import type { User } from '@shared/schema';
+import type { NavidromeCredentials } from '../types/types';
 
 interface AuthState {
   credentials: NavidromeCredentials | null;

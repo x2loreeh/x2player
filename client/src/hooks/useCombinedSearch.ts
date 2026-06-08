@@ -66,8 +66,11 @@ export const useCombinedSearch = (debouncedSearchText: string) => {
         name: albumName,
         artist: artistName,
         coverArt: firstSong.coverArt || "",
-        songCount: songs.length,
-        year: firstSong.year,
+        trackCount: songs.length,
+        duration: 0,
+        createdAt: new Date(),
+        artistId: artistName,
+        year: firstSong.year || undefined,
       });
     });
 

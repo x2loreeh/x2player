@@ -174,7 +174,7 @@ export function LocalFiles() {
                   <p className="font-medium text-sm truncate text-foreground">{track.title}</p>
                   <p className="text-muted-foreground text-xs truncate">{track.artist} • {track.album}</p>
                 </div>
-                {track.duration > 0 && (
+                {track.duration != null && track.duration > 0 && (
                   <div className="flex items-center text-muted-foreground text-xs">
                     <Clock className="h-3 w-3 mr-1" />
                     {formatDuration(track.duration)}

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Track, Playlist } from '@shared/schema';
+import type { Song as Track, Playlist } from '../types/types';
 
 interface PlayerState {
   currentTrack: Track | null;

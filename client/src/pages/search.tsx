@@ -99,7 +99,7 @@ const SearchPage = () => {
                       album={{
                         ...album,
                         coverArt:
-                          memoizedGetCoverArtUrl(album.coverArt) ||
+                          memoizedGetCoverArtUrl(album.coverArt || undefined) ||
                           album.coverArt,
                       }}
                       onClick={() => handleAlbumClick(album)}

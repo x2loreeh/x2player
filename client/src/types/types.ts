@@ -21,45 +21,50 @@ export interface Album {
   id: string;
   name: string;
   artist: string;
-  coverArt: string;
-  songCount: number;
+  artistId: string;
+  coverArt: string | null;
+  trackCount: number;
+  duration: number;
+  createdAt: Date;
   year?: number;
+  genre?: string;
+  songs?: Song[];
 }
 
 export interface Playlist {
   id: string;
   name: string;
-  comment: string;
+  comment?: string;
   owner: string;
   public: boolean;
   songCount: number;
   duration: number;
-  created: Date;
-  changed: Date;
-  coverArt: string;
+  created: string | Date;
+  changed: string | Date;
+  coverArt?: string;
   songs?: Song[];
 }
 
 export interface Song {
   id: string;
-  parent: string;
-  isDir: boolean;
+  parent?: string;
+  isDir?: boolean;
   title: string;
   album: string;
   artist: string;
-  track: number;
-  year: number;
-  genre: string;
+  track: number | null;
+  year: number | null;
+  genre: string | null;
   coverArt: string | null;
-  size: number;
-  contentType: string;
-  suffix: string;
-  duration: number;
-  bitRate: number;
+  size?: number;
+  contentType?: string;
+  suffix?: string;
+  duration: number | null;
+  bitRate?: number;
   path: string;
-  playCount: number;
-  created: string;
-  albumId: string;
-  artistId: string;
-  type: string;
+  playCount?: number;
+  created?: string;
+  albumId: string | null;
+  artistId?: string;
+  type?: string;
 }
