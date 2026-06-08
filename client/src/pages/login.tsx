@@ -75,8 +75,8 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col justify-center px-6 py-8">
-      <div className="max-w-sm mx-auto w-full">
+    <div className="min-h-dvh bg-background text-foreground grid place-items-center px-4 py-8 sm:px-6">
+      <div className="w-full max-w-sm">
         <div className="text-center mb-12">
           <div className="w-20 h-20 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6">
             <Music className="text-foreground text-4xl" />

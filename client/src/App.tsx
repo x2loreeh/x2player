@@ -82,12 +82,17 @@ function App() {
 
   const isDesktop = window.matchMedia("(min-width: 768px)").matches;
   const showPlayer = !!currentTrack;
+  const isAuthPage = location === "/login" || location === "/welcome";
 
   return (
     <div className="relative min-h-screen">
       <Toaster />
       <main
-        className={cn("pb-24", { "pt-16": isDesktop, "pb-40": showPlayer })}
+        className={cn({
+          "pb-24": !isAuthPage,
+          "pt-16": isDesktop && !isAuthPage,
+          "pb-40": showPlayer && !isAuthPage,
+        })}
       >
         <Switch>
           <Route path="/welcome" component={Welcome} />
@@ -104,8 +109,8 @@ function App() {
           <Route component={NotFound} />
         </Switch>
       </main>
-      {showPlayer && <MiniPlayer />}
-      <BottomNavigation />
+      {showPlayer && !isAuthPage && <MiniPlayer />}
+      {!isAuthPage && <BottomNavigation />}
     </div>
   );
 }
