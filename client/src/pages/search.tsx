@@ -88,12 +88,7 @@ const SearchPage = () => {
                   {combinedAlbums.map((album: Album) => (
                     <AlbumCard
                       key={album.id}
-                      album={{
-                        ...album,
-                        coverArt:
-                          memoizedGetCoverArtUrl(album.coverArt || undefined) ||
-                          album.coverArt,
-                      }}
+                      album={album}
                       onClick={() => handleAlbumClick(album)}
                     />
                   ))}
@@ -111,9 +106,7 @@ const SearchPage = () => {
                       song={song}
                       isPlaying={isPlaying && currentTrack?.id === song.id}
                       onClick={() => handlePlay(song)}
-                      coverArtUrl={memoizedGetCoverArtUrl(
-                        song.coverArt || undefined,
-                      )}
+                      coverArtUrl={song.coverArt || undefined}
                     />
                   ))}
                 </div>

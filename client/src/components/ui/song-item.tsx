@@ -32,8 +32,8 @@ export const SongItem = ({
             className="w-full h-full object-cover rounded-md shadow-sm"
           />
         ) : (
-          <div className="w-full h-full bg-dark-surface rounded-md flex items-center justify-center">
-            <Music className="w-5 h-5 text-dark-text-secondary opacity-50" />
+          <div className="w-full h-full bg-secondary rounded-md flex items-center justify-center">
+            <Music className="w-5 h-5 text-muted-foreground opacity-50" />
           </div>
         )}
       </div>
@@ -42,12 +42,12 @@ export const SongItem = ({
         <h3
           className={cn(
             "text-[15px] font-medium leading-tight truncate",
-            isPlaying ? "text-spotify-green" : "text-dark-text-primary"
+            isPlaying ? "text-spotify-green" : "text-foreground"
           )}
         >
           {song.title}
         </h3>
-        <p className="text-[13px] text-dark-text-secondary truncate mt-0.5">
+        <p className="text-[13px] text-muted-foreground truncate mt-0.5">
           {song.artist}
         </p>
       </div>

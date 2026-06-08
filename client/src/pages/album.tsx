@@ -49,14 +49,6 @@ export default function AlbumPage() {
       // Get album tracks first (which includes album info in the response)
       const albumTracks = await activeService.getAlbumTracks(albumId);
 
-      // Convert coverArt IDs to actual URLs and set stream URLs for playback
-      for (const track of albumTracks) {
-        if (track.coverArt) {
-          track.coverArt = navidrome.getCoverArtUrl(track.coverArt);
-        }
-        track.path = navidrome.getStreamUrl(track.id);
-      }
-
       setTracks(albumTracks);
 
       // Create album object from first track
@@ -99,15 +91,15 @@ export default function AlbumPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-dark-bg text-dark-text-primary">
+      <div className="min-h-screen bg-background text-foreground">
         <div className="max-w-sm mx-auto">
           <div className="px-4 py-6">
             <div className="animate-pulse space-y-4">
-              <div className="w-8 h-8 bg-dark-surface rounded-full"></div>
-              <div className="w-full aspect-square bg-dark-surface rounded-2xl"></div>
+              <div className="w-8 h-8 bg-secondary rounded-full"></div>
+              <div className="w-full aspect-square bg-secondary rounded-2xl"></div>
               <div className="space-y-2">
-                <div className="h-6 bg-dark-surface rounded w-48"></div>
-                <div className="h-4 bg-dark-surface rounded w-32"></div>
+                <div className="h-6 bg-secondary rounded w-48"></div>
+                <div className="h-4 bg-secondary rounded w-32"></div>
               </div>
             </div>
           </div>
@@ -118,7 +110,7 @@ export default function AlbumPage() {
 
   if (!album) {
     return (
-      <div className="min-h-screen bg-dark-bg text-dark-text-primary flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="text-center">
           <p className="text-lg">Album not found</p>
           <Button onClick={() => setLocation("/")} className="mt-4">
@@ -130,14 +122,14 @@ export default function AlbumPage() {
   }
 
   return (
-    <div className="bg-dark-bg text-dark-text-primary">
+    <div className="bg-background text-foreground">
       <div className="max-w-sm mx-auto">
         {/* Header */}
         <div className="px-4 py-6">
           <div className="flex items-center justify-start mb-6">
             <button
               onClick={() => setLocation("/")}
-              className="w-10 h-10 bg-dark-surface rounded-full flex items-center justify-center hover:bg-dark-elevated transition-colors"
+              className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center hover:bg-muted transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -165,10 +157,10 @@ export default function AlbumPage() {
             <h1 className="text-2xl font-bold mb-2">{album.name}</h1>
             <div className="flex items-center justify-between mb-1">
               <div>
-                <p className="text-dark-text-secondary text-lg">
+                <p className="text-muted-foreground text-lg">
                   {album.artist}
                 </p>
-                <p className="text-dark-text-secondary text-sm">
+                <p className="text-muted-foreground text-sm">
                   {tracks.length} tracks • {Math.floor((album.duration || 0) / 60)} min
                 </p>
               </div>
@@ -182,7 +174,7 @@ export default function AlbumPage() {
                       playQueue(shuffledTracks);
                     }
                   }}
-                  className="w-12 h-12 bg-dark-surface rounded-full flex items-center justify-center hover:bg-dark-elevated transition-colors"
+                  className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center hover:bg-muted transition-colors"
                 >
                   <Shuffle className="h-5 w-5 text-white" />
                 </button>
@@ -208,17 +200,17 @@ export default function AlbumPage() {
                 <div className="w-8 text-center text-gray-400">{index + 1}</div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-white truncate">{track.title}</p>
-                  <p className="text-dark-text-secondary text-sm">
+                  <p className="text-muted-foreground text-sm">
                     {track.artist}
                   </p>
                 </div>
                 <div className="ml-4">
                   <Sheet>
                     <SheetTrigger onClick={(e) => e.stopPropagation()}>
-                      <MoreHorizontal className="h-5 w-5 text-dark-text-secondary" />
+                      <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
                     </SheetTrigger>
                     <SheetContent side="bottom" className="bg-transparent border-none p-0">
-                      <div className="mx-auto max-w-sm bg-dark-surface text-dark-text-primary rounded-t-2xl p-6">
+                      <div className="mx-auto max-w-sm bg-secondary text-foreground rounded-t-2xl p-6">
                         <SheetHeader className="text-left">
                           <SheetTitle className="text-xl text-white truncate">{track.title}</SheetTitle>
                           <SheetDescription className="text-base text-white">
@@ -228,7 +220,7 @@ export default function AlbumPage() {
                         <div className="py-4 grid gap-2">
                           <Button
                             variant="ghost"
-                            className="w-full justify-start text-lg p-4 text-white hover:bg-dark-elevated hover:text-white"
+                            className="w-full justify-start text-lg p-4 text-white hover:bg-muted hover:text-white"
                             onClick={() => {
                               toggleLike(track.id);
                               toast({
@@ -241,7 +233,7 @@ export default function AlbumPage() {
                           </Button>
                           <Button
                             variant="ghost"
-                            className="w-full justify-start text-lg p-4 text-white hover:bg-dark-elevated hover:text-white"
+                            className="w-full justify-start text-lg p-4 text-white hover:bg-muted hover:text-white"
                             onClick={() => {
                               addToQueue(track);
                               toast({

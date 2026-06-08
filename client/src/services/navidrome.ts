@@ -298,7 +298,9 @@ export class NavidromeService {
         track: song.track,
         year: song.year,
         genre: song.genre,
-        coverArt: song.coverArt ? this.getCoverArtUrl(song.coverArt) : null,
+        coverArt: song.coverArt 
+          ? this.getCoverArtUrl(song.coverArt) 
+          : (albumData.coverArt ? this.getCoverArtUrl(albumData.coverArt) : null),
         size: song.size,
         contentType: song.contentType,
         suffix: song.suffix,
@@ -337,7 +339,9 @@ export class NavidromeService {
         track: song.track,
         year: song.year,
         genre: song.genre,
-        coverArt: song.coverArt ? this.getCoverArtUrl(song.coverArt) : null,
+        coverArt: song.coverArt 
+          ? this.getCoverArtUrl(song.coverArt) 
+          : (albumData.coverArt ? this.getCoverArtUrl(albumData.coverArt) : null),
         size: song.size,
         contentType: song.contentType,
         suffix: song.suffix,
@@ -569,7 +573,9 @@ export class NavidromeService {
           track: song.track,
           year: song.year,
           genre: song.genre,
-          coverArt: song.coverArt ? this.getCoverArtUrl(song.coverArt) : null,
+          coverArt: song.coverArt 
+            ? this.getCoverArtUrl(song.coverArt) 
+            : (playlistData.coverArt ? this.getCoverArtUrl(playlistData.coverArt) : null),
           size: song.size,
           contentType: song.contentType,
           suffix: song.suffix,
