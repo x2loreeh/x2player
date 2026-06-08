@@ -4,9 +4,11 @@ import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 import { FullPlayer } from "./full-player";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useScrollVisibility } from "@/hooks/useScrollVisibility";
 
 export function MiniPlayer() {
   const t = useTranslation();
+  const isVisible = useScrollVisibility(400);
   const [isFullPlayerOpen, setIsFullPlayerOpen] = useState(false);
   const {
     currentTrack,
@@ -97,10 +99,10 @@ export function MiniPlayer() {
     <>
       {currentTrack && <audio ref={audioRef} preload="metadata" />}
       <div className={cn(
-        "fixed left-4 right-4 z-[45] max-w-md mx-auto",
-        "bottom-[110px]" // above floating bottom navigation
+        "fixed left-6 right-6 z-[45] transition-all duration-300 ease-in-out",
+        isVisible ? "bottom-[96px]" : "bottom-6"
       )}>
-        <div className="bg-background/80 backdrop-blur-3xl border border-border/50 rounded-[32px] p-2.5 shadow-2xl overflow-hidden relative">
+        <div className="bg-background/80 backdrop-blur-3xl border border-border/50 rounded-full p-1.5 shadow-2xl overflow-hidden relative">
           
           {/* Background blur if cover exists */}
           {currentTrack?.coverArt && (
@@ -123,18 +125,18 @@ export function MiniPlayer() {
                   <img
                     src={currentTrack.coverArt}
                     alt="Now playing"
-                    className="w-11 h-11 rounded-[14px] object-cover shadow-sm"
+                    className="w-10 h-10 rounded-[10px] object-cover shadow-sm"
                   />
                 ) : (
-                  <div className="w-11 h-11 rounded-[14px] bg-secondary flex items-center justify-center">
-                    <div className="w-5 h-5 rounded-full bg-muted-foreground/30"></div>
+                  <div className="w-10 h-10 rounded-[10px] bg-secondary flex items-center justify-center">
+                    <div className="w-4 h-4 rounded-full bg-muted-foreground/30"></div>
                   </div>
                 )}
               </div>
               <div className="flex-1 min-w-0 overflow-hidden max-w-[calc(100%-50px)]">
-                <div className="overflow-hidden whitespace-nowrap">
+                <div className="overflow-hidden whitespace-nowrap px-1">
                   <p className={cn(
-                    "font-medium text-[15px] text-foreground",
+                    "font-semibold text-[13px] text-foreground",
                     isPlaying && currentTrack?.title && currentTrack.title.length > 25
                       ? "animate-marquee-bidirectional inline-block"
                       : "truncate block"
@@ -145,58 +147,43 @@ export function MiniPlayer() {
               </div>
             </div>
           
-            <div className="flex items-center space-x-2 flex-shrink-0">
-            <div className="flex items-center space-x-1 flex-shrink-0 mr-1">
-            <button
-              onClick={togglePlay}
-              disabled={!currentTrack || isLoading}
-              className={cn(
-                "p-2 flex items-center justify-center transition-all",
-                currentTrack && !isLoading
-                  ? "text-foreground hover:scale-110 active:scale-95"
-                  : "text-muted-foreground cursor-not-allowed"
-              )}
-            >
-              {isLoading ? (
-                <div className="w-6 h-6 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
-              ) : isPlaying ? (
-                <Pause className="h-6 w-6 fill-current" />
-              ) : (
-                <Play className="h-6 w-6 fill-current ml-0.5" />
-              )}
-            </button>
-            
-            <button
-              onClick={nextTrack}
-              disabled={!currentTrack}
-              className={cn(
-                "p-2 transition-all",
-                currentTrack 
-                  ? "text-foreground hover:scale-110 active:scale-95" 
-                  : "text-muted-foreground cursor-not-allowed"
-              )}
-            >
-              <SkipForward className="h-6 w-6 fill-current" />
-            </button>
+            <div className="flex items-center space-x-2 flex-shrink-0 ml-auto mr-1">
+            <div className="flex items-center space-x-1.5 flex-shrink-0">
+              <button
+                onClick={togglePlay}
+                disabled={!currentTrack || isLoading}
+                className={cn(
+                  "p-1.5 flex items-center justify-center transition-all rounded-full bg-foreground/5",
+                  currentTrack && !isLoading
+                    ? "text-foreground hover:bg-foreground/10 active:scale-95"
+                    : "text-muted-foreground cursor-not-allowed"
+                )}
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-foreground border-t-transparent rounded-full animate-spin" />
+                ) : isPlaying ? (
+                  <Pause className="h-5 w-5 fill-current" />
+                ) : (
+                  <Play className="h-5 w-5 fill-current ml-0.5" />
+                )}
+              </button>
+                        <button
+                onClick={nextTrack}
+                disabled={!currentTrack}
+                className={cn(
+                  "p-1.5 transition-all rounded-full",
+                  currentTrack 
+                    ? "text-foreground hover:bg-foreground/10 active:scale-95" 
+                    : "text-muted-foreground cursor-not-allowed"
+                )}
+              >
+                <SkipForward className="h-5 w-5 fill-current" />
+              </button>
           </div>
           </div>
           </div>
           
-          {/* Progress Bar */}
-          <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/10">
-            <div
-              className="bg-foreground h-full transition-all duration-200"
-              style={{ width: `${progressPercentage}%` }}
-            />
-            <input
-              type="range"
-              min="0"
-              max={duration || 0}
-              value={progress}
-              onChange={(e) => seekTo(Number(e.target.value))}
-              className="absolute w-full h-4 -top-1 left-0 opacity-0 cursor-pointer"
-            />
-          </div>
+
         </div>
       </div>
       
