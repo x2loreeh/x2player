@@ -7,6 +7,8 @@ import { navidrome } from "@/services/navidrome";
 import { MockNavidromeService } from "@/services/mockData";
 import { Button } from "@/components/ui/button";
 import type { Album, Track } from "@shared/schema";
+import { useLocalFilesStore } from "@/stores/localFilesStore";
+import { getLocalAlbumById } from "@/lib/localMusic";
 import {
   Sheet,
   SheetContent,
@@ -27,6 +29,7 @@ export default function AlbumPage() {
   const [isLoading, setIsLoading] = useState(true);
   
   const { credentials } = useAuthStore();
+  const { files: localSongs } = useLocalFilesStore();
   const { playQueue, likedSongs, toggleLike, addToQueue, playTrack } = usePlayerStore();
   
   // Use mock service when no credentials are available
@@ -43,11 +46,35 @@ export default function AlbumPage() {
     if (params?.id) {
       loadAlbumData(params.id);
     }
-  }, [params?.id]);
+  }, [params?.id, localSongs]);
 
   const loadAlbumData = async (albumId: string) => {
     setIsLoading(true);
     try {
+      if (albumId.startsWith("local-album-")) {
+        const localAlbum = getLocalAlbumById(localSongs, albumId);
+
+        if (!localAlbum) {
+          setAlbum(null);
+          setTracks([]);
+          return;
+        }
+
+        setAlbum({
+          id: localAlbum.id,
+          name: localAlbum.name,
+          artist: localAlbum.artist,
+          coverArt: localAlbum.coverArt,
+          year: localAlbum.year || null,
+          genre: localAlbum.genre || null,
+          trackCount: localAlbum.trackCount,
+          duration: localAlbum.duration,
+          createdAt: localAlbum.createdAt,
+        });
+        setTracks((localAlbum.songs || []) as Track[]);
+        return;
+      }
+
       // Get album tracks first (which includes album info in the response)
       const albumTracks = await activeService.getAlbumTracks(albumId);
 

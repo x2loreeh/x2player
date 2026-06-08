@@ -9,20 +9,23 @@ import { FilePicker, PickedFile } from "@capawesome/capacitor-file-picker";
 import { Song } from "@/types/types";
 import jsmediatags from "jsmediatags";
 import { Clock, Music } from "lucide-react";
+import { makeLocalAlbumId, normalizeLocalArtist } from "@/lib/localMusic";
 
-// Funzione helper per convertire dati base64 in un Blob
 const b64toBlob = (b64Data: string, contentType = "", sliceSize = 512) => {
   const byteCharacters = atob(b64Data);
   const byteArrays = [];
+
   for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
     const slice = byteCharacters.slice(offset, offset + sliceSize);
     const byteNumbers = new Array(slice.length);
+
     for (let i = 0; i < slice.length; i++) {
       byteNumbers[i] = slice.charCodeAt(i);
     }
-    const byteArray = new Uint8Array(byteNumbers);
-    byteArrays.push(byteArray);
+
+    byteArrays.push(new Uint8Array(byteNumbers));
   }
+
   return new Blob(byteArrays, { type: contentType });
 };
 
@@ -32,9 +35,93 @@ const formatDuration = (seconds: number) => {
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
 
+const getAudioDuration = (url: string) =>
+  new Promise<number>((resolve) => {
+    const audio = document.createElement("audio");
+    let settled = false;
+
+    const cleanup = () => {
+      audio.removeAttribute("src");
+      audio.load();
+    };
+
+    const finish = (duration: number) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(duration);
+    };
+
+    audio.preload = "metadata";
+    audio.src = url;
+    audio.onloadedmetadata = () => {
+      const duration = Number.isFinite(audio.duration)
+        ? Math.round(audio.duration)
+        : 0;
+
+      finish(duration);
+    };
+    audio.onerror = () => finish(0);
+    window.setTimeout(() => finish(0), 8000);
+  });
+
+const readAudioTags = (file: File) =>
+  new Promise<any>((resolve) => {
+    jsmediatags.read(file, {
+      onSuccess: (tag) => resolve(tag.tags || {}),
+      onError: () => resolve({}),
+    });
+  });
+
+const parseTrackNumber = (track: unknown) => {
+  const value = Array.isArray(track) ? track[0] : track;
+  const firstPart = String(value || "0").split("/")[0];
+  return parseInt(firstPart, 10) || 0;
+};
+
+const parseYear = (year: unknown) => {
+  const match = String(year || "").match(/\d{4}/);
+  return match ? parseInt(match[0], 10) : 0;
+};
+
+const getTagValue = (tags: Record<string, any>, keys: string[]) => {
+  for (const key of keys) {
+    const value = tags[key];
+
+    if (Array.isArray(value)) {
+      const first = value.find(Boolean);
+      if (first) return String(first).trim();
+    }
+
+    if (value && typeof value === "object" && "data" in value) {
+      return String(value.data || "").trim();
+    }
+
+    if (value) {
+      return String(value).trim();
+    }
+  }
+
+  return "";
+};
+
+const getFileBaseName = (fileName: string) => fileName.replace(/\.[^/.]+$/, "");
+
+const getDirectoryAlbumName = (file: File | PickedFile) => {
+  const path =
+    file instanceof File
+      ? file.webkitRelativePath
+      : "path" in file && typeof file.path === "string"
+        ? file.path
+        : "";
+  const parts = path.split(/[\\/]/).filter(Boolean);
+
+  return parts.length > 1 ? parts[parts.length - 2] : "";
+};
+
 export function LocalFiles() {
   const { files, setFiles } = useLocalFilesStore();
-  const { setDataSource } = useSettingsStore();
+  const { enableDataSource } = useSettingsStore();
   const { playTrack, clearQueue } = usePlayerStore();
   const [, setLocation] = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,20 +135,35 @@ export function LocalFiles() {
       const fileObject =
         file instanceof File
           ? file
-          : new File([b64toBlob(file.data!, file.mimeType)], file.name || "unknown", {
-              type: file.mimeType,
-            });
+          : new File(
+              [b64toBlob(file.data!, file.mimeType)],
+              file.name || "unknown",
+              { type: file.mimeType }
+            );
 
       try {
-        const tags = await new Promise<any>((resolve, reject) => {
-          jsmediatags.read(fileObject, {
-            onSuccess: (tag) => resolve(tag),
-            onError: (error) => reject(error),
-          });
-        });
-
-        const { title, artist, album, picture } = tags.tags;
+        const tags = await readAudioTags(fileObject);
+        const title = getTagValue(tags, ["title", "TIT2"]);
+        const artist = getTagValue(tags, ["artist", "TPE1"]);
+        const albumArtist = getTagValue(tags, [
+          "albumartist",
+          "albumArtist",
+          "TPE2",
+        ]);
+        const album = getTagValue(tags, ["album", "TALB"]);
+        const track = getTagValue(tags, ["track", "TRCK"]);
+        const year = getTagValue(tags, ["year", "date", "TYER", "TDRC"]);
+        const genre = getTagValue(tags, ["genre", "TCON"]);
+        const { picture } = tags;
+        const url = URL.createObjectURL(fileObject);
+        const duration = await getAudioDuration(url);
         let coverArt: string | null = null;
+        const artistName = normalizeLocalArtist(artist || albumArtist);
+        const albumArtistName = normalizeLocalArtist(albumArtist || artistName);
+        const albumName =
+          album || getDirectoryAlbumName(file) || "Unknown Album";
+        const albumId = makeLocalAlbumId(albumName, albumArtistName);
+
         if (picture) {
           const { data, format } = picture;
           const base64String = data.reduce(
@@ -71,38 +173,48 @@ export function LocalFiles() {
           coverArt = `data:${format};base64,${window.btoa(base64String)}`;
         }
 
-        // Usiamo l'URL del blob per la riproduzione
-        const url = URL.createObjectURL(fileObject);
-
         songs.push({
-          id: fileObject.name + fileObject.size, // ID univoco
-          title: title || fileObject.name.replace(/\.[^/.]+$/, ""),
-          artist: artist || "Unknown Artist",
-          album: album || "Unknown Album",
+          id: `${fileObject.name}-${fileObject.size}`,
+          title: title || getFileBaseName(fileObject.name),
+          artist: artistName,
+          album: albumName,
           coverArt,
-          path: url, // Usiamo il path per l'URL del blob
-          duration: 0, // La durata verrà gestita dal player
-          // Aggiungi qui altri campi del tipo Song se necessario
-          parent: "", isDir: false, track: 0, year: 0, genre: "", size: fileObject.size,
-          contentType: fileObject.type, suffix: "", bitRate: 0, playCount: 0,
-          created: "", albumId: "", artistId: "", type: "music",
+          path: url,
+          duration,
+          parent: "",
+          isDir: false,
+          track: parseTrackNumber(track),
+          year: parseYear(year),
+          genre: genre || "",
+          size: fileObject.size,
+          contentType: fileObject.type,
+          suffix: "",
+          bitRate: 0,
+          playCount: 0,
+          created: "",
+          albumId,
+          artistId: albumArtistName,
+          type: "music",
         });
       } catch (error) {
-        console.error("Error reading tags for", fileObject.name, error);
+        console.error("Error processing file", fileObject.name, error);
       }
     }
 
     if (songs.length > 0) {
       clearQueue();
       setFiles(songs);
-      setDataSource("local");
+      enableDataSource("local");
     } else {
-      alert("No compatible audio files with readable metadata found.");
+      alert("No compatible audio files found.");
     }
+
     setIsLoading(false);
   };
 
-  const handleWebFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleWebFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const fileList = event.target.files;
     if (!fileList || fileList.length === 0) return;
     await processFiles(Array.from(fileList));
@@ -110,12 +222,14 @@ export function LocalFiles() {
 
   const handleButtonClick = async () => {
     const platform = Capacitor.getPlatform();
+
     try {
       if (platform === "android" || platform === "ios") {
         const result = await FilePicker.pickFiles({
           readData: true,
           types: platform === "ios" ? ["public.audio"] : undefined,
         });
+
         if (result && result.files.length > 0) {
           await processFiles(result.files);
         }
@@ -124,10 +238,16 @@ export function LocalFiles() {
       }
     } catch (e) {
       console.error("Error during file selection:", e);
+
       if (e instanceof Error && e.message.toLowerCase().includes("cancelled")) {
         return;
       }
-      alert(`An error occurred during selection: ${e instanceof Error ? e.message : String(e)}`);
+
+      alert(
+        `An error occurred during selection: ${
+          e instanceof Error ? e.message : String(e)
+        }`
+      );
     }
   };
 
@@ -154,7 +274,9 @@ export function LocalFiles() {
         <div className="max-w-sm mx-auto px-4 py-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Your Local Files</h2>
-            <Button variant="outline" onClick={() => setFiles([])}>Change</Button>
+            <Button variant="outline" onClick={() => setFiles([])}>
+              Change
+            </Button>
           </div>
           <div className="space-y-2">
             {files.map((track) => (
@@ -164,15 +286,23 @@ export function LocalFiles() {
                 onClick={() => handleTrackClick(track)}
               >
                 {track.coverArt ? (
-                  <img src={track.coverArt} alt={`${track.title} cover`} className="w-12 h-12 rounded object-cover" />
+                  <img
+                    src={track.coverArt}
+                    alt={`${track.title} cover`}
+                    className="w-12 h-12 rounded object-cover"
+                  />
                 ) : (
                   <div className="w-12 h-12 rounded bg-muted flex items-center justify-center">
                     <Music className="h-6 w-6 text-muted-foreground" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate text-foreground">{track.title}</p>
-                  <p className="text-muted-foreground text-xs truncate">{track.artist} • {track.album}</p>
+                  <p className="font-medium text-sm truncate text-foreground">
+                    {track.title}
+                  </p>
+                  <p className="text-muted-foreground text-xs truncate">
+                    {track.artist} - {track.album}
+                  </p>
                 </div>
                 {track.duration != null && track.duration > 0 && (
                   <div className="flex items-center text-muted-foreground text-xs">

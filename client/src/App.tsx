@@ -30,7 +30,10 @@ function App() {
   const [location] = useLocation();
 
   useEffect(() => {
-    if (dataSource === "navidrome" && navidromeCredentials) {
+    if (
+      (dataSource === "navidrome" || dataSource === "both") &&
+      navidromeCredentials
+    ) {
       navidrome.setCredentials(navidromeCredentials);
     }
   }, [dataSource, navidromeCredentials]);
@@ -38,7 +41,9 @@ function App() {
   const { data: session, isLoading } = useQuery({
     queryKey: ["getSession", navidromeCredentials],
     queryFn: () => navidrome.checkAuth(),
-    enabled: dataSource === "navidrome" && !!navidromeCredentials,
+    enabled:
+      (dataSource === "navidrome" || dataSource === "both") &&
+      !!navidromeCredentials,
     retry: false,
   });
 
@@ -67,7 +72,7 @@ function App() {
     return <Redirect to="/welcome" />;
   }
 
-  if (dataSource === "navidrome") {
+  if (dataSource === "navidrome" || dataSource === "both") {
     if (isLoading) {
       return (
         <div className="flex h-full items-center justify-center">

@@ -2,33 +2,19 @@ import React, { useCallback } from "react";
 import { useLocation } from "wouter";
 import { AlbumCard } from "@/components/ui/album-card";
 import { useTranslation } from "react-i18next";
-import { useLocalFilesStore } from "@/stores/localFilesStore";
 import { Album } from "@/types/types";
-import { usePlayerStore } from "@/stores/playerStore";
 import { useCombinedAlbums } from "@/hooks/useCombinedAlbums";
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
-  const { files: localSongs } = useLocalFilesStore();
-  const playQueue = usePlayerStore((s) => s.playQueue);
   const { albums, isLoading } = useCombinedAlbums();
   const [, setLocation] = useLocation();
 
   const handleAlbumClick = useCallback(
     (album: Album) => {
-      if (album.id.startsWith("local-album-")) {
-        const songsToPlay = localSongs.filter(
-          (song) => song.album === album.name && song.artist === album.artist
-        );
-        if (songsToPlay.length > 0) {
-          playQueue(songsToPlay, 0);
-        }
-      } else {
-        // È un album di Navidrome, naviga alla pagina dell'album
-        setLocation(`/album/${album.id}`);
-      }
+      setLocation(`/album/${album.id}`);
     },
-    [localSongs, playQueue, setLocation]
+    [setLocation]
   );
 
   return (

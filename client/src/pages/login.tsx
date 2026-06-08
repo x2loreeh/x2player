@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Music, Loader2 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
+import { useSettingsStore } from "@/stores/settingsStore";
 import { navidrome } from "@/services/navidrome";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
@@ -21,6 +22,7 @@ export default function Login() {
   });
   
   const { login } = useAuthStore();
+  const { enableDataSource } = useSettingsStore();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -51,6 +53,7 @@ export default function Login() {
 
       // Save credentials and redirect
       login(credentials);
+      enableDataSource("navidrome");
       toast({
         title: "Connected successfully",
         description: "Welcome to x2player!",

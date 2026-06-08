@@ -44,16 +44,7 @@ const SearchPage = () => {
   );
 
   const handleAlbumClick = (album: Album) => {
-    if (album.id.startsWith("local-album-")) {
-      const songsToPlay = combinedSongs.filter(
-        (song: Song) => song.album === album.name,
-      );
-      if (songsToPlay.length > 0) {
-        playQueue(songsToPlay, 0);
-      }
-    } else {
-      setLocation(`/album/${album.id}`);
-    }
+    setLocation(`/album/${album.id}`);
   };
 
   return (

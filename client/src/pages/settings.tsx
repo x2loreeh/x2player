@@ -1,9 +1,10 @@
-import { useLocation, Link } from "wouter";
-import { ChevronRight, FolderSync } from "lucide-react";
+import { useLocation } from "wouter";
+import { FolderOpen, FolderSync, LogIn, Server } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useAuthStore } from "@/stores/authStore";
 import { useSettingsStore } from "@/stores/settingsStore";
+import { useLocalFilesStore } from "@/stores/localFilesStore";
 import {
   Card,
   CardContent,
@@ -28,7 +29,9 @@ export default function SettingsPage() {
   const t = useTranslation();
   const [, navigate] = useLocation();
   const { user, logout } = useAuthStore();
+  const { files, setFiles } = useLocalFilesStore();
   const {
+    dataSource,
     volume,
     setVolume,
     crossfade,
@@ -43,6 +46,8 @@ export default function SettingsPage() {
     setLanguage,
     theme,
     setTheme,
+    enableDataSource,
+    disableDataSource,
   } = useSettingsStore();
   const { mutate: syncLibrary, isPending: isSyncing } = useMutation({
     mutationFn: () => navidrome.scanLibrary(),
@@ -67,10 +72,42 @@ export default function SettingsPage() {
     setTheme(value);
   };
 
+  const hasNavidrome = dataSource === "navidrome" || dataSource === "both";
+  const hasLocalFiles = dataSource === "local" || dataSource === "both";
+
+  const handleNavidromeToggle = (checked: boolean) => {
+    if (checked) {
+      if (useAuthStore.getState().credentials) {
+        enableDataSource("navidrome");
+      } else {
+        navigate("/login");
+      }
+      return;
+    }
+
+    logout();
+    disableDataSource("navidrome");
+  };
+
+  const handleLocalFilesToggle = (checked: boolean) => {
+    if (checked) {
+      if (files.length > 0) {
+        enableDataSource("local");
+      } else {
+        navigate("/local-files");
+      }
+      return;
+    }
+
+    setFiles([]);
+    disableDataSource("local");
+  };
+
   const handleLogout = () => {
     logout();
+    disableDataSource("navidrome");
     console.log("Logout successful");
-    navigate("/login");
+    navigate(hasLocalFiles ? "/settings" : "/login");
   };
 
   return (
@@ -310,43 +347,100 @@ export default function SettingsPage() {
           </Card>
         </section>
 
-        <section id="server" className="mb-8 px-4">
+        <section id="music-sources" className="mb-8 px-4">
           <h2 className="text-lg font-semibold mb-4 text-foreground">
-            {t("settings.server")}
+            {t("settings.musicSources")}
           </h2>
           <Card>
-            <CardContent className="pt-6">
-              <Link to="/server-select">
-                <div className="flex items-center justify-between cursor-pointer hover:bg-accent -m-2 p-2 rounded-lg transition-colors">
-                  <div>
+            <CardContent className="space-y-4 pt-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex min-w-0 items-start gap-3">
+                  <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary">
+                    <Server className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="min-w-0">
                     <p className="font-medium text-foreground">
-                      {t("settings.changeServer")}
+                      {t("settings.navidromeSource")}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {t("settings.changeServerDescription")}
+                      {t("settings.navidromeSourceDescription")}
                     </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => navigate("/login")}
+                    >
+                      <LogIn className="h-4 w-4" />
+                      {t("settings.connectNavidrome")}
+                    </Button>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
                 </div>
-              </Link>
-              <Separator className="my-2" />
-              <div
-                className="flex items-center justify-between cursor-pointer hover:bg-accent -m-2 p-2 rounded-lg transition-colors"
-                onClick={() => !isSyncing && syncLibrary()}
-              >
-                <div>
-                  <p className="font-medium text-foreground">
-                    {t("settings.syncLibrary")}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {t("settings.syncLibraryDescription")}
-                  </p>
+                <Switch
+                  checked={hasNavidrome}
+                  onCheckedChange={handleNavidromeToggle}
+                  aria-label={t("settings.navidromeSource")}
+                />
+              </div>
+
+              {hasNavidrome && (
+                <>
+                  <Separator />
+                  <div
+                    className="flex cursor-pointer items-center justify-between gap-4 rounded-lg p-2 -mx-2 transition-colors hover:bg-accent"
+                    onClick={() => !isSyncing && syncLibrary()}
+                  >
+                    <div>
+                      <p className="font-medium text-foreground">
+                        {t("settings.syncLibrary")}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {t("settings.syncLibraryDescription")}
+                      </p>
+                    </div>
+                    {isSyncing ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    ) : (
+                      <FolderSync className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
+                </>
+              )}
+
+              <Separator />
+
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex min-w-0 items-start gap-3">
+                  <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary">
+                    <FolderOpen className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground">
+                      {t("settings.localFilesSource")}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {files.length > 0
+                        ? t("settings.localFilesReady")
+                        : t("settings.localFilesSourceDescription")}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-3"
+                      onClick={() => navigate("/local-files")}
+                    >
+                      <FolderOpen className="h-4 w-4" />
+                      {files.length > 0
+                        ? t("settings.changeLocalFiles")
+                        : t("settings.addLocalFiles")}
+                    </Button>
+                  </div>
                 </div>
-                {isSyncing ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                ) : (
-                  <FolderSync className="h-4 w-4 text-muted-foreground" />
-                )}
+                <Switch
+                  checked={hasLocalFiles}
+                  onCheckedChange={handleLocalFilesToggle}
+                  aria-label={t("settings.localFilesSource")}
+                />
               </div>
             </CardContent>
           </Card>

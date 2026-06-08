@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { navidrome } from "@/services/navidrome";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useLocalFilesStore } from "@/stores/localFilesStore";
-import { Album, Song } from "@/types/types";
+import { buildLocalAlbums } from "@/lib/localMusic";
 
 export const useCombinedAlbums = () => {
   const { dataSource } = useSettingsStore();
@@ -18,34 +18,7 @@ export const useCombinedAlbums = () => {
   const localAlbums = useMemo(() => {
     if (dataSource !== "local" && dataSource !== "both") return [];
 
-    const albumMap = new Map<string, Song[]>();
-
-    localSongs.forEach((song) => {
-      const albumName = song.album || "Unknown Album";
-      if (!albumMap.has(albumName)) {
-        albumMap.set(albumName, []);
-      }
-      albumMap.get(albumName)!.push(song);
-    });
-
-    const albums: Album[] = [];
-    albumMap.forEach((songs, albumName) => {
-      const firstSong = songs[0];
-      const artistName = firstSong.artist || "Unknown Artist";
-      albums.push({
-        id: `local-album-${albumName}-${artistName}`, // ID più robusto
-        name: albumName,
-        artist: artistName,
-        coverArt: firstSong.coverArt || "",
-        trackCount: songs.length,
-        duration: 0,
-        createdAt: new Date(),
-        artistId: artistName,
-        year: firstSong.year || undefined,
-      });
-    });
-
-    return albums;
+    return buildLocalAlbums(localSongs);
   }, [localSongs, dataSource]);
 
   const allAlbums = useMemo(

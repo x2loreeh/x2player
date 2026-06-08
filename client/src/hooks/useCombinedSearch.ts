@@ -4,7 +4,7 @@ import { useSettingsStore } from "@/stores/settingsStore";
 import { useLocalFilesStore } from "@/stores/localFilesStore";
 import { useAuthStore } from "@/stores/authStore";
 import { NavidromeService } from "@/services/navidrome";
-import { Album, Song } from "@/types/types";
+import { buildLocalAlbums } from "@/lib/localMusic";
 
 export const useCombinedSearch = (debouncedSearchText: string) => {
   const { dataSource } = useSettingsStore();
@@ -47,32 +47,7 @@ export const useCombinedSearch = (debouncedSearchText: string) => {
         song.album?.toLowerCase().includes(query)
     );
 
-    const albumMap = new Map<string, Song[]>();
-    filteredSongs.forEach((song) => {
-      if (song.album) {
-        if (!albumMap.has(song.album)) {
-          albumMap.set(song.album, []);
-        }
-        albumMap.get(song.album)!.push(song);
-      }
-    });
-
-    const albums: Album[] = [];
-    albumMap.forEach((songs, albumName) => {
-      const firstSong = songs[0];
-      const artistName = firstSong.artist || "Unknown Artist";
-      albums.push({
-        id: `local-album-${albumName}-${artistName}`,
-        name: albumName,
-        artist: artistName,
-        coverArt: firstSong.coverArt || "",
-        trackCount: songs.length,
-        duration: 0,
-        createdAt: new Date(),
-        artistId: artistName,
-        year: firstSong.year || undefined,
-      });
-    });
+    const albums = buildLocalAlbums(filteredSongs);
 
     return { albums, songs: filteredSongs };
   }, [debouncedSearchText, localSongs, dataSource]);

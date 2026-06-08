@@ -14,6 +14,8 @@ type SettingsState = {
   crossfade: number;
   normalizeVolume: boolean;
   setDataSource: (dataSource: DataSource) => void;
+  enableDataSource: (source: Exclude<DataSource, "both">) => void;
+  disableDataSource: (source: Exclude<DataSource, "both">) => void;
   setLocalMusicPath: (path: string) => void;
   setTheme: (theme: "light" | "dark" | "system") => void;
   setLanguage: (language: string) => void;
@@ -38,6 +40,35 @@ export const useSettingsStore = create<SettingsState>()(
       crossfade: 0,
       normalizeVolume: false,
       setDataSource: (dataSource) => set({ dataSource }),
+      enableDataSource: (source) =>
+        set((state) => {
+          if (state.dataSource === source || state.dataSource === "both") {
+            return state;
+          }
+
+          return {
+            dataSource:
+              state.dataSource === null ? source : "both",
+          };
+        }),
+      disableDataSource: (source) =>
+        set((state) => {
+          if (state.dataSource === null) {
+            return state;
+          }
+
+          if (state.dataSource === "both") {
+            return {
+              dataSource: source === "navidrome" ? "local" : "navidrome",
+            };
+          }
+
+          if (state.dataSource === source) {
+            return { dataSource: null };
+          }
+
+          return state;
+        }),
       setLocalMusicPath: (path) => set({ localMusicPath: path }),
       setTheme: (theme) => set({ theme }),
       setLanguage: (language) => set({ language }),
