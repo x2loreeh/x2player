@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import md5 from 'md5';
 import type { User } from '@shared/schema';
 import type { NavidromeCredentials } from '../types/types';
 
@@ -18,10 +19,20 @@ export const useAuthStore = create<AuthState>()(
       credentials: null,
       user: null,
       isAuthenticated: false,
-      
       login: (credentials) => {
+        let finalCredentials = { ...credentials };
+        if (credentials.password) {
+          const salt = Math.random().toString(36).substring(2, 12);
+          const token = md5(credentials.password + salt);
+          finalCredentials = {
+            serverUrl: credentials.serverUrl,
+            username: credentials.username,
+            token,
+            salt,
+          };
+        }
         set({
-          credentials,
+          credentials: finalCredentials,
           isAuthenticated: true,
         });
       },

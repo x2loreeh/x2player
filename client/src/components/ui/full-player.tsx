@@ -83,23 +83,32 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[100] flex flex-col overflow-hidden"
-          style={{ backgroundColor: "hsl(var(--card))" }}
+          className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-background text-foreground"
           variants={playerVariants}
           initial="hidden"
           animate="visible"
           exit="exit"
-          transition={{ duration: 0.3, ease: "easeInOut" }}
+          transition={{ duration: 0.4, type: "spring", bounce: 0, damping: 25 }}
         >
-          <div className="relative z-10 flex-1 flex flex-col p-4 text-card-foreground">
+          {/* Blurred Background from Cover Art */}
+          {currentTrack.coverArt && (
+            <div 
+              className="absolute inset-0 bg-cover bg-center blur-3xl opacity-40 scale-125 pointer-events-none" 
+              style={{ backgroundImage: `url(${currentTrack.coverArt})` }} 
+            />
+          )}
+          <div className="absolute inset-0 bg-background/50 pointer-events-none" />
+
+          <div className="relative z-10 flex-1 flex flex-col p-6 pt-12">
             {/* Header */}
-            <div className="flex justify-between items-center">
-              <button onClick={() => setIsOpen(false)} className="p-2">
-                <ChevronDown size={28} />
+            <div className="flex justify-between items-center mb-8">
+              <button onClick={() => setIsOpen(false)} className="p-2 opacity-70 hover:opacity-100 transition-opacity">
+                <ChevronDown size={32} />
               </button>
               <div className="text-center">
-                <p className="text-sm uppercase">Playing from album</p>
-                <p className="font-bold">{currentTrack.album}</p>
+                <p className="text-xs uppercase font-semibold tracking-wider opacity-60">
+                  {currentTrack.album}
+                </p>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -116,29 +125,21 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
             </div>
 
             {/* Cover Art */}
-            <div className="flex-1 flex items-center justify-center my-8">
+            <div className="flex-1 flex items-center justify-center mb-8">
               <img
                 src={currentTrack.coverArt ?? ""}
                 alt={currentTrack.title}
-                className="w-full max-w-xs aspect-square rounded-lg shadow-2xl"
+                className="w-full max-w-[320px] aspect-square rounded-2xl shadow-2xl object-cover"
               />
             </div>
 
             {/* Track Info & Actions */}
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex-1 min-w-0 overflow-hidden max-w-[calc(100%-60px)]">
-                <div className="overflow-hidden whitespace-nowrap">
-                  <h2 className={cn(
-                    "text-2xl font-bold",
-                    isPlaying && currentTrack?.title && currentTrack.title.length > 20
-                      ? "animate-marquee-bidirectional inline-block"
-                      : "truncate block"
-                  )}
-                  >
-                    {currentTrack.title}
-                  </h2>
-                </div>
-                <p className="text-lg text-muted-foreground truncate">
+            <div className="flex justify-between items-end mb-8">
+              <div className="flex-1 min-w-0 pr-4">
+                <h2 className="text-2xl font-bold truncate mb-1 text-foreground">
+                  {currentTrack.title}
+                </h2>
+                <p className="text-lg text-foreground/70 truncate">
                   {currentTrack.artist}
                 </p>
               </div>
@@ -151,59 +152,59 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
             </div>
 
             {/* Progress Bar */}
-            <div className="mb-4">
+            <div className="mb-10">
               <Slider
                 value={[progress]}
                 max={duration ? Math.round(duration) : 0}
                 step={1}
-                className="w-full"
+                className="w-full h-1.5"
                 onValueChange={(value) => seekTo(value[0])}
               />
-              <div className="flex justify-between text-xs mt-1">
+              <div className="flex justify-between text-xs font-medium text-foreground/50 mt-2">
                 <span>{formatDuration(progress)}</span>
                 <span>{formatDuration(currentTrack.duration)}</span>
               </div>
             </div>
 
             {/* Controls */}
-            <div className="flex justify-around items-center mb-4">
+            <div className="flex justify-between items-center mb-10 px-4">
               <button
                 onClick={toggleShuffle}
-                className={cn("p-2", isShuffled && "text-green-500")}
+                className={cn("p-2 transition-colors", isShuffled ? "text-green-500" : "text-foreground/50 hover:text-foreground")}
               >
-                <Shuffle size={24} />
+                <Shuffle size={22} />
               </button>
-              <button onClick={previousTrack} className="p-2">
-                <SkipBack size={32} />
+              <button onClick={previousTrack} className="p-2 text-foreground active:scale-90 transition-transform">
+                <SkipBack size={40} className="fill-current" />
               </button>
               <button
                 onClick={togglePlay}
-                className="bg-white text-black rounded-full w-16 h-16 flex items-center justify-center"
+                className="bg-foreground text-background rounded-full w-20 h-20 flex items-center justify-center active:scale-95 transition-transform"
               >
                 {isPlaying ? (
-                  <Pause size={32} />
+                  <Pause size={36} className="fill-current" />
                 ) : (
-                  <Play size={32} className="ml-1" />
+                  <Play size={36} className="fill-current ml-2" />
                 )}
               </button>
-              <button onClick={nextTrack} className="p-2">
-                <SkipForward size={32} />
+              <button onClick={nextTrack} className="p-2 text-foreground active:scale-90 transition-transform">
+                <SkipForward size={40} className="fill-current" />
               </button>
               <button
                 onClick={setRepeatMode}
-                className={cn("p-2", repeatMode !== "none" && "text-green-500")}
+                className={cn("p-2 transition-colors relative", repeatMode !== "none" ? "text-green-500" : "text-foreground/50 hover:text-foreground")}
               >
-                <Repeat size={24} />
+                <Repeat size={22} />
                 {repeatMode === "track" && (
-                  <div className="w-1 h-1 bg-green-500 rounded-full absolute mt-1" />
+                  <div className="w-1 h-1 bg-green-500 rounded-full absolute -top-0 right-1" />
                 )}
               </button>
             </div>
 
             {/* Footer Actions */}
-            <div className="flex justify-between items-center text-xs">
-              <button className="p-2">
-                <ListMusic size={20} />
+            <div className="flex justify-center items-center text-foreground/50 pb-8">
+              <button className="p-3 hover:text-foreground transition-colors bg-white/5 rounded-full backdrop-blur-md">
+                <ListMusic size={22} />
               </button>
             </div>
           </div>

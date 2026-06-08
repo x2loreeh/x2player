@@ -48,6 +48,15 @@ export default function AlbumPage() {
     try {
       // Get album tracks first (which includes album info in the response)
       const albumTracks = await activeService.getAlbumTracks(albumId);
+
+      // Convert coverArt IDs to actual URLs and set stream URLs for playback
+      for (const track of albumTracks) {
+        if (track.coverArt) {
+          track.coverArt = navidrome.getCoverArtUrl(track.coverArt);
+        }
+        track.path = navidrome.getStreamUrl(track.id);
+      }
+
       setTracks(albumTracks);
 
       // Create album object from first track

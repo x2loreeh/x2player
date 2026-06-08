@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 import md5 from "md5";
 import { Album, Artist, Song } from "../types/types";
+import { useAuthStore } from "../stores/authStore";
 
 export class NavidromeService {
   private api!: AxiosInstance;
@@ -135,7 +136,7 @@ export class NavidromeService {
         name: album.name,
         artist: album.artist,
         artistId: album.artistId,
-        coverArt: album.coverArt,
+        coverArt: album.coverArt ? this.getCoverArtUrl(album.coverArt) : null,
         trackCount: album.songCount,
         duration: album.duration,
         createdAt: new Date(album.created),
@@ -163,7 +164,7 @@ export class NavidromeService {
         name: album.name,
         artist: album.artist,
         artistId: album.artistId,
-        coverArt: album.coverArt,
+        coverArt: album.coverArt ? this.getCoverArtUrl(album.coverArt) : null,
         trackCount: album.songCount,
         duration: album.duration,
         createdAt: new Date(album.created),
@@ -228,7 +229,7 @@ export class NavidromeService {
         suffix: song.suffix,
         duration: song.duration,
         bitRate: song.bitRate,
-        path: song.path,
+        path: this.getStreamUrl(song.id),
         playCount: song.playCount,
         created: song.created,
         albumId: song.albumId,
@@ -263,7 +264,7 @@ export class NavidromeService {
           name: album.name,
           artist: album.artist,
           artistId: album.artistId,
-          coverArt: album.coverArt,
+          coverArt: album.coverArt ? this.getCoverArtUrl(album.coverArt) : null,
           trackCount: album.songCount,
           duration: album.duration,
           createdAt: new Date(album.created),
@@ -297,13 +298,13 @@ export class NavidromeService {
         track: song.track,
         year: song.year,
         genre: song.genre,
-        coverArt: song.coverArt,
+        coverArt: song.coverArt ? this.getCoverArtUrl(song.coverArt) : null,
         size: song.size,
         contentType: song.contentType,
         suffix: song.suffix,
         duration: song.duration,
         bitRate: song.bitRate,
-        path: song.path,
+        path: this.getStreamUrl(song.id),
         playCount: song.playCount,
         created: song.created,
         albumId: song.albumId,
@@ -336,13 +337,13 @@ export class NavidromeService {
         track: song.track,
         year: song.year,
         genre: song.genre,
-        coverArt: song.coverArt,
+        coverArt: song.coverArt ? this.getCoverArtUrl(song.coverArt) : null,
         size: song.size,
         contentType: song.contentType,
         suffix: song.suffix,
         duration: song.duration,
         bitRate: song.bitRate,
-        path: song.path,
+        path: this.getStreamUrl(song.id),
         playCount: song.playCount,
         created: song.created,
         albumId: song.albumId,
@@ -354,7 +355,7 @@ export class NavidromeService {
         name: albumData.name,
         artist: albumData.artist,
         artistId: albumData.artistId,
-        coverArt: albumData.coverArt,
+        coverArt: albumData.coverArt ? this.getCoverArtUrl(albumData.coverArt) : null,
         trackCount: albumData.songCount,
         duration: albumData.duration,
         createdAt: new Date(albumData.created),
@@ -387,13 +388,13 @@ export class NavidromeService {
         track: songData.track,
         year: songData.year,
         genre: songData.genre,
-        coverArt: songData.coverArt,
+        coverArt: songData.coverArt ? this.getCoverArtUrl(songData.coverArt) : null,
         size: songData.size,
         contentType: songData.contentType,
         suffix: songData.suffix,
         duration: songData.duration,
         bitRate: songData.bitRate,
-        path: songData.path,
+        path: this.getStreamUrl(songData.id),
         playCount: songData.playCount,
         created: songData.created,
         albumId: songData.albumId,
@@ -406,16 +407,42 @@ export class NavidromeService {
     }
   }
 
+  private getTokenAndSalt() {
+    const creds = useAuthStore.getState().credentials;
+    if (!creds) return { t: "", s: "" };
+    
+    if (creds.token && creds.salt) return { t: creds.token, s: creds.salt };
+    if (this.token && this.salt) return { t: this.token, s: this.salt };
+    
+    if (creds.password) {
+      const s = Math.random().toString(36).substring(2, 12);
+      const t = md5(creds.password + s);
+      this.token = t;
+      this.salt = s;
+      return { t, s };
+    }
+    
+    return { t: "", s: "" };
+  }
+
   getStreamUrl(id: string, maxBitRate = 0) {
-    return `${
-      this.api.defaults.baseURL
-    }/stream.view?u=${this.username}&t=${this.token}&s=${this.salt}&v=1.16.1&c=x2player&id=${id}&maxBitRate=${maxBitRate}`;
+    const creds = useAuthStore.getState().credentials;
+    if (!creds) return "";
+    
+    const { t, s } = this.getTokenAndSalt();
+    const baseURL = this.api ? this.api.defaults.baseURL : `${creds.serverUrl}/rest`;
+
+    return `${baseURL}/stream.view?u=${creds.username}&t=${t}&s=${s}&v=1.16.1&c=x2player&id=${id}&maxBitRate=${maxBitRate}`;
   }
 
   getCoverArtUrl(id: string, size?: number) {
-    let url = `${
-      this.api.defaults.baseURL
-    }/getCoverArt.view?u=${this.username}&t=${this.token}&s=${this.salt}&v=1.16.1&c=x2player&id=${id}`;
+    const creds = useAuthStore.getState().credentials;
+    if (!creds) return "";
+    
+    const { t, s } = this.getTokenAndSalt();
+    const baseURL = this.api ? this.api.defaults.baseURL : `${creds.serverUrl}/rest`;
+
+    let url = `${baseURL}/getCoverArt.view?u=${creds.username}&t=${t}&s=${s}&v=1.16.1&c=x2player&id=${id}`;
     if (size) {
       url += `&size=${size}`;
     }
@@ -449,7 +476,7 @@ export class NavidromeService {
         artists: searchResult.artist?.map((artist: any) => ({
           id: artist.id,
           name: artist.name,
-          coverArt: artist.coverArt,
+          coverArt: artist.coverArt ? this.getCoverArtUrl(artist.coverArt) : null,
           albumCount: artist.albumCount,
         })),
         albums: searchResult.album?.map((album: any) => ({
@@ -457,7 +484,7 @@ export class NavidromeService {
           name: album.name,
           artist: album.artist,
           artistId: album.artistId,
-          coverArt: album.coverArt,
+          coverArt: album.coverArt ? this.getCoverArtUrl(album.coverArt) : null,
           trackCount: album.songCount,
           duration: album.duration,
           created: new Date(album.created),
@@ -474,13 +501,13 @@ export class NavidromeService {
           track: song.track,
           year: song.year,
           genre: song.genre,
-          coverArt: song.coverArt,
+          coverArt: song.coverArt ? this.getCoverArtUrl(song.coverArt) : null,
           size: song.size,
           contentType: song.contentType,
           suffix: song.suffix,
           duration: song.duration,
           bitRate: song.bitRate,
-          path: song.path,
+          path: this.getStreamUrl(song.id),
           playCount: song.playCount,
           created: song.created,
           albumId: song.albumId,
@@ -510,7 +537,7 @@ export class NavidromeService {
             duration: playlist.duration,
             created: playlist.created,
             changed: playlist.changed,
-            coverArt: playlist.coverArt,
+            coverArt: playlist.coverArt ? this.getCoverArtUrl(playlist.coverArt) : null,
             owner: playlist.owner,
             public: playlist.public,
           })
@@ -542,13 +569,13 @@ export class NavidromeService {
           track: song.track,
           year: song.year,
           genre: song.genre,
-          coverArt: song.coverArt,
+          coverArt: song.coverArt ? this.getCoverArtUrl(song.coverArt) : null,
           size: song.size,
           contentType: song.contentType,
           suffix: song.suffix,
           duration: song.duration,
           bitRate: song.bitRate,
-          path: song.path,
+          path: this.getStreamUrl(song.id),
           playCount: song.playCount,
           created: song.created,
           albumId: song.albumId,
@@ -562,7 +589,7 @@ export class NavidromeService {
         duration: playlistData.duration,
         created: playlistData.created,
         changed: playlistData.changed,
-        coverArt: playlistData.coverArt,
+        coverArt: playlistData.coverArt ? this.getCoverArtUrl(playlistData.coverArt) : null,
         owner: playlistData.owner,
         public: playlistData.public,
         songs,
