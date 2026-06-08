@@ -15,20 +15,20 @@ export function BottomNavigation() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-black border-t p-2 flex justify-around">
+    <nav className="fixed bottom-6 left-4 right-4 bg-background/80 backdrop-blur-2xl border border-border/50 rounded-[32px] p-2 flex justify-around shadow-2xl z-50">
       {navigation.map((item) => (
         <Link
           key={item.name}
           href={item.href}
           className={cn(
-            "flex flex-col items-center text-xs w-20 pt-1 pb-0.5 transition-all duration-200",
+            "flex flex-col items-center text-xs w-20 pt-1.5 pb-1 transition-all duration-300 rounded-[24px]",
             location === item.href
-              ? "text-primary -translate-y-1"
-              : "text-muted-foreground hover:text-primary"
+              ? "text-foreground bg-secondary/50 shadow-sm"
+              : "text-muted-foreground hover:text-foreground hover:bg-secondary/30"
           )}
         >
-          <item.icon className="h-6 w-6" />
-          <span className="mt-1">{item.name}</span>
+          <item.icon className="h-[22px] w-[22px]" />
+          <span className="mt-1.5 font-medium">{item.name}</span>
         </Link>
       ))}
     </nav>

@@ -44,35 +44,35 @@ export function AlbumCard({
             src={album.coverArt}
             alt={`${album.name} cover`}
             className={cn(
-              "rounded-xl object-cover mb-3",
+              "rounded-[24px] object-cover mb-4",
               imageSizes[size]
             )}
           />
         ) : (
           <div
             className={cn(
-              "bg-dark-surface rounded-xl flex items-center justify-center mb-3",
+              "bg-secondary rounded-[24px] flex items-center justify-center mb-4",
               imageSizes[size]
             )}
           >
-            <Play className="h-8 w-8 text-dark-text-secondary" />
+            <Play className="h-8 w-8 text-muted-foreground" />
           </div>
         )}
         
         {showPlayButton && (
           <button
-            className="absolute bottom-2 right-2 w-12 h-12 bg-spotify-green rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 shadow-lg"
+            className="absolute bottom-3 right-3 w-12 h-12 bg-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0 shadow-xl"
           >
-            <Play className="h-5 w-5 text-dark-bg ml-0.5" />
+            <Play className="h-5 w-5 text-background ml-0.5" />
           </button>
         )}
       </div>
       
       <div className={cn("space-y-1", sizeClasses[size])}>
-        <p className="font-semibold text-sm truncate text-dark-text-primary">
+        <p className="font-semibold text-sm truncate text-foreground">
           {album.name}
         </p>
-        <p className="text-dark-text-secondary text-xs truncate">
+        <p className="text-muted-foreground text-xs truncate">
           {album.artist}
         </p>
       </div>

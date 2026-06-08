@@ -73,21 +73,21 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-bg text-dark-text-primary flex flex-col justify-center px-6 py-8">
+    <div className="min-h-screen bg-background text-foreground flex flex-col justify-center px-6 py-8">
       <div className="max-w-sm mx-auto w-full">
         <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-dark-surface rounded-full flex items-center justify-center mx-auto mb-6">
-            <Music className="text-dark-text-primary text-4xl" />
+          <div className="w-20 h-20 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6">
+            <Music className="text-foreground text-4xl" />
           </div>
-          <h1 className="text-3xl font-bold text-center mb-2 text-dark-text-primary">x2player</h1>
-          <p className="text-dark-text-secondary">Connect to your Navidrome server</p>
+          <h1 className="text-3xl font-bold text-center mb-2 text-foreground">x2player</h1>
+          <p className="text-muted-foreground">Connect to your Navidrome server</p>
         </div>
 
-        <Card className="bg-dark-surface border-dark-border">
+        <Card className="bg-secondary border-border">
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="serverUrl" className="text-dark-text-secondary">
+                <Label htmlFor="serverUrl" className="text-muted-foreground">
                   Server URL
                 </Label>
                 <Input
@@ -96,13 +96,13 @@ export default function Login() {
                   placeholder="https://navidrome.example.com"
                   value={formData.serverUrl}
                   onChange={handleInputChange('serverUrl')}
-                  className="bg-dark-surface border-dark-border text-dark-text-primary placeholder-dark-text-secondary focus:border-dark-text-secondary"
+                  className="bg-secondary border-border text-foreground placeholder-dark-text-secondary focus:border-dark-text-secondary"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-dark-text-secondary">
+                <Label htmlFor="username" className="text-muted-foreground">
                   Username
                 </Label>
                 <Input
@@ -111,13 +111,13 @@ export default function Login() {
                   placeholder="Username"
                   value={formData.username}
                   onChange={handleInputChange('username')}
-                  className="bg-dark-surface border-dark-border text-dark-text-primary placeholder-dark-text-secondary focus:border-dark-text-secondary"
+                  className="bg-secondary border-border text-foreground placeholder-dark-text-secondary focus:border-dark-text-secondary"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-dark-text-secondary">
+                <Label htmlFor="password" className="text-muted-foreground">
                   Password
                 </Label>
                 <Input
@@ -126,13 +126,13 @@ export default function Login() {
                   placeholder="Password"
                   value={formData.password}
                   onChange={handleInputChange('password')}
-                  className="bg-dark-surface border-dark-border text-dark-text-primary placeholder-dark-text-secondary focus:border-dark-text-secondary"
+                  className="bg-secondary border-border text-foreground placeholder-dark-text-secondary focus:border-dark-text-secondary"
                   required
                 />
               </div>
               <Button
                 type="submit"
-                className="w-full bg-dark-surface text-dark-text-primary hover:bg-dark-elevated font-semibold"
+                className="w-full bg-secondary text-foreground hover:bg-muted font-semibold"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -149,9 +149,9 @@ export default function Login() {
         </Card>
         
         <div className="mt-8 text-center">
-          <p className="text-center text-dark-text-secondary text-sm">
+          <p className="text-center text-muted-foreground text-sm">
             Don't have a server? Learn more about{" "}
-            <a href="https://www.navidrome.org/" target="_blank" rel="noopener noreferrer" className="text-dark-text-secondary text-sm hover:underline">
+            <a href="https://www.navidrome.org/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground text-sm hover:underline">
               Navidrome
             </a>
             .

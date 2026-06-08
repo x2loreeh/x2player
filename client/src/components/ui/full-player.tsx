@@ -129,7 +129,7 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
               <img
                 src={currentTrack.coverArt ?? ""}
                 alt={currentTrack.title}
-                className="w-full max-w-[320px] aspect-square rounded-2xl shadow-2xl object-cover"
+                className="w-full max-w-[320px] aspect-square rounded-[32px] shadow-2xl object-cover"
               />
             </div>
 
@@ -143,10 +143,10 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
                   {currentTrack.artist}
                 </p>
               </div>
-              <button onClick={handleLike} className="p-2 flex-shrink-0">
+              <button onClick={handleLike} className="p-2 flex-shrink-0 transition-transform active:scale-90">
                 <Heart
-                  size={24}
-                  className={cn(isLiked ? "fill-green-500 text-green-500" : "")}
+                  size={26}
+                  className={cn(isLiked ? "fill-foreground text-foreground" : "text-muted-foreground")}
                 />
               </button>
             </div>
@@ -170,7 +170,7 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
             <div className="flex justify-between items-center mb-10 px-4">
               <button
                 onClick={toggleShuffle}
-                className={cn("p-2 transition-colors", isShuffled ? "text-green-500" : "text-foreground/50 hover:text-foreground")}
+                className={cn("p-2 transition-colors", isShuffled ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
               >
                 <Shuffle size={22} />
               </button>
@@ -179,7 +179,7 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
               </button>
               <button
                 onClick={togglePlay}
-                className="bg-foreground text-background rounded-full w-20 h-20 flex items-center justify-center active:scale-95 transition-transform"
+                className="bg-foreground text-background rounded-full w-20 h-20 flex items-center justify-center active:scale-95 transition-transform shadow-xl"
               >
                 {isPlaying ? (
                   <Pause size={36} className="fill-current" />
@@ -192,11 +192,11 @@ export function FullPlayer({ isOpen, setIsOpen }: FullPlayerProps) {
               </button>
               <button
                 onClick={setRepeatMode}
-                className={cn("p-2 transition-colors relative", repeatMode !== "none" ? "text-green-500" : "text-foreground/50 hover:text-foreground")}
+                className={cn("p-2 transition-colors relative", repeatMode !== "none" ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
               >
                 <Repeat size={22} />
                 {repeatMode === "track" && (
-                  <div className="w-1 h-1 bg-green-500 rounded-full absolute -top-0 right-1" />
+                  <div className="w-1.5 h-1.5 bg-foreground rounded-full absolute -top-1 right-0" />
                 )}
               </button>
             </div>

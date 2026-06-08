@@ -97,15 +97,15 @@ export function MiniPlayer() {
     <>
       {currentTrack && <audio ref={audioRef} preload="metadata" />}
       <div className={cn(
-        "fixed left-4 right-4 z-40 max-w-md mx-auto",
-        "bottom-20" // slightly above bottom navigation
+        "fixed left-4 right-4 z-[45] max-w-md mx-auto",
+        "bottom-[110px]" // above floating bottom navigation
       )}>
-        <div className="bg-background/70 backdrop-blur-3xl border border-white/10 rounded-2xl p-2 shadow-2xl overflow-hidden relative">
+        <div className="bg-background/80 backdrop-blur-3xl border border-border/50 rounded-[32px] p-2.5 shadow-2xl overflow-hidden relative">
           
           {/* Background blur if cover exists */}
           {currentTrack?.coverArt && (
             <div 
-              className="absolute inset-0 bg-cover bg-center blur-xl opacity-20 scale-150 pointer-events-none"
+              className="absolute inset-0 bg-cover bg-center blur-[40px] opacity-20 scale-150 pointer-events-none"
               style={{ backgroundImage: `url(${currentTrack.coverArt})` }}
             />
           )}
@@ -123,11 +123,11 @@ export function MiniPlayer() {
                   <img
                     src={currentTrack.coverArt}
                     alt="Now playing"
-                    className="w-10 h-10 rounded-lg object-cover shadow-md"
+                    className="w-11 h-11 rounded-[14px] object-cover shadow-sm"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
-                    <div className="w-5 h-5 rounded bg-white/20"></div>
+                  <div className="w-11 h-11 rounded-[14px] bg-secondary flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-muted-foreground/30"></div>
                   </div>
                 )}
               </div>

@@ -51,7 +51,7 @@ export default function ArtistPage() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-bg text-dark-text-primary pb-32">
+    <div className="min-h-screen bg-background text-foreground pb-32">
       <div className="max-w-sm mx-auto">
         <div className="relative h-48">
           {isLoadingArtist ? (
